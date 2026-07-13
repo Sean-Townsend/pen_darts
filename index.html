@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>PenBar - Snakes & Ladders</title>
+
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+
+    <meta name="theme-color" content="#000000">
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="PenBar">
+</head>
+
+<script>
+if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("service-worker.js");
+}
+</script>
+
+<body>
+    <div class="game-frame">
+        <div class="game-container">
+            <!-- Main board grid -->
+            <div class="board-grid" id="boardGrid"></div>
+
+
+
+
+            <!-- SVG overlay for snakes and ladders -->
+            <svg class="overlay-svg" id="overlaySvg" preserveAspectRatio="xMidYMid meet">
+                <defs>
+                    <linearGradient id="ladderGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" style="stop-color:#e74c3c;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#c0392b;stop-opacity:1" />
+                    </linearGradient>
+                    <linearGradient id="snakeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" style="stop-color:#1a5c3a;stop-opacity:1" />
+                        <stop offset="50%" style="stop-color:#27ae60;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#1a5c3a;stop-opacity:1" />
+                    </linearGradient>
+                </defs>
+            </svg>
+
+            <!-- Player area -->
+            <div class="player-area">
+                <div class="player" data-player="1">
+                    <div class="player-avatar" style="--player-color: #e74c3c;">
+                        <span class="player-icon">🎯</span>
+                    </div>
+                    <div class="player-name">Player 1</div>
+                </div>
+                <div class="player" data-player="2">
+                    <div class="player-avatar" style="--player-color: #3498db;">
+                        <span class="player-icon">🎯</span>
+                    </div>
+                    <div class="player-name">Player 2</div>
+                </div>
+                <div class="player" data-player="3">
+                    <div class="player-avatar" style="--player-color: #2ecc71;">
+                        <span class="player-icon">🎯</span>
+                    </div>
+                    <div class="player-name">Player 3</div>
+                </div>
+                <div class="player" data-player="4">
+                    <div class="player-avatar" style="--player-color: #f39c12;">
+                        <span class="player-icon">🎯</span>
+                    </div>
+                    <div class="player-name">Player 4</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+	<script src="board.js?v=2"></script>
+	<script src="audio.js"></script>
+	<script src="game.js?v=2"></script>
+	
+	
+	<script>
+	if ("serviceWorker" in navigator) {
+		navigator.serviceWorker.register("service-worker.js");
+	}
+</script>
+</body>
+</html>
