@@ -9,10 +9,10 @@ const FILES_TO_CACHE = [
     "./audio.js",
     "./game.js",
 
-    "./fonts/bebas_neue/BebasNeue-Regular.ttf",
-    "./fonts/oswald/static/Oswald-Regular.ttf",
-    "./fonts/oswald/static/Oswald-Bold.ttf",
-    "./fonts/permanent_marker/PermanentMarker-Regular.ttf"
+    "./fonts/bebas_Neue/BebasNeue-Regular.ttf",
+    "./fonts/Oswald/static/Oswald-Regular.ttf",
+    "./fonts/Oswald/static/Oswald-Bold.ttf",
+    "./fonts/Permanent_Marker/PermanentMarker-Regular.ttf"
 ];
 
 
