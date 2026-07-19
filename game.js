@@ -487,20 +487,30 @@ async function processMove(dartScore) {
         gameState.dartsRemaining--;
         
         // Next player after 3 darts
+        let showingBanner = false;
         if (gameState.dartsRemaining <= 0) {
             gameState.currentPlayer = (gameState.currentPlayer + 1) % gameState.numPlayers;
             gameState.dartsRemaining = 3;
             playTurnChangeSound();
             showTurnIndicator();
-            await showPlayerBanner(gameState.currentPlayer);
+            showingBanner = true;
         } else {
             showTurnIndicator();
         }
+        
+        // Release the lock BEFORE showing the banner so players can dismiss
+        // it early or immediately start their next throw during it.
+        gameState.animating = false;
+        
+        if (showingBanner) {
+            await showPlayerBanner(gameState.currentPlayer);
+        }
+        return;
     } catch (err) {
         console.error('processMove error:', err);
     } finally {
-        // Always release the animating lock, even if something above threw.
-        // This guarantees the game can never permanently lock up.
+        // Safety net: guarantees the lock is always released, even if
+        // something above threw before reaching the explicit release.
         gameState.animating = false;
     }
 }
@@ -519,6 +529,10 @@ async function animateMovement(playerIdx, from, to) {
         const pos = getTokenPosition(current);
         if (pos) {
             playMoveSound();
+            // Force a reflow before re-applying transition so the browser
+            // registers the change as a new animation step, not a skipped one.
+            token.style.transition = 'none';
+            void token.offsetHeight;
             token.style.transition = 'left 0.15s ease, top 0.15s ease';
             token.style.left = (pos.x - TOKEN_RADIUS) + 'px';
             token.style.top = (pos.y - TOKEN_RADIUS) + 'px';
