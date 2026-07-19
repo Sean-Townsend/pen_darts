@@ -5,6 +5,12 @@
     box-sizing: border-box;
 }
 
+button {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+}
+
 html, body {
     height: 100%;
     overflow: hidden;
@@ -107,6 +113,7 @@ body {
 .champion-content {
     text-align: center;
     z-index: 2;
+    margin-left: 15%;
 }
 
 .champion-content .trophy {
@@ -674,6 +681,9 @@ body {
     font-size: 32px;
     margin-right: 24px;
     white-space: nowrap;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
 }
 
 .btn-miss:hover {
