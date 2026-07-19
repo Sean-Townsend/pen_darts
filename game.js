@@ -349,29 +349,14 @@ function quitGame() {
     showPlayerSelect();
 }
 
-// === ROBUST BUTTON ACTION HANDLER (fixes iOS double-tap issues) ===
-// Uses pointerup instead of click for more reliable repeated taps on touch devices,
-// and blurs the button afterward to prevent stuck focus/hover state.
+// === BUTTON ACTION HANDLER ===
+// Simple, reliable click handling. Blurs the button afterward so focus/hover
+// styling doesn't linger on touch devices (the actual hover fix lives in CSS
+// via @media (hover: hover), this blur is just a extra safety net).
 function attachButtonAction(el, action) {
-    let lastTriggered = 0;
-    
-    const trigger = (e) => {
-        e.preventDefault();
-        const now = Date.now();
-        if (now - lastTriggered < 150) return; // debounce accidental double-fires
-        lastTriggered = now;
+    el.addEventListener('click', () => {
         action();
         el.blur();
-    };
-    
-    el.addEventListener('pointerup', trigger);
-    // Fallback for browsers without pointer events
-    el.addEventListener('click', (e) => {
-        if (Date.now() - lastTriggered < 150) {
-            e.preventDefault();
-            return;
-        }
-        trigger(e);
     });
 }
 
