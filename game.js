@@ -381,7 +381,7 @@ function showDartButtons() {
             btn.textContent = labels[idx];
             btn.addEventListener('mouseenter', () => playHoverSound());
             btn.addEventListener('click', () => {
-                if (gameState.finished || gameState.animating) return;
+                if (gameState.finished || isStuckAnimating()) return;
                 dismissBannerEarly();
                 if (value === 0) {
                     playMissSound();
@@ -406,7 +406,7 @@ function enableInput() {
 }
 
 function handleKeyPress(e) {
-    if (gameState.finished || gameState.animating) return;
+    if (gameState.finished || isStuckAnimating()) return;
     
     const key = parseInt(e.key);
     if (key >= 1 && key <= 6) {
@@ -422,68 +422,85 @@ function handleKeyPress(e) {
 
 // === MOVE LOGIC ===
 
+function isStuckAnimating() {
+    // Safety net: if 'animating' has been true for more than 5 seconds,
+    // something went wrong and it's stuck. Force-reset it so the game
+    // never becomes permanently unresponsive.
+    if (gameState.animating && gameState.animatingSince && (Date.now() - gameState.animatingSince > 5000)) {
+        console.warn('Detected stuck animating flag — resetting.');
+        gameState.animating = false;
+    }
+    return gameState.animating;
+}
+
 async function processMove(dartScore) {
-    if (gameState.animating) return;
+    if (isStuckAnimating()) return;
     gameState.animating = true;
+    gameState.animatingSince = Date.now();
     
-    const playerIdx = gameState.currentPlayer;
-    const player = gameState.players[playerIdx];
-    const oldPos = player.position;
-    let newPos = oldPos + dartScore;
-    
-    // Must land exactly on the winning square — if overshooting, stay put
-    if (newPos > WINNING_SQUARE) {
-        newPos = oldPos;
-    }
-    
-    // Animate movement square by square
-    await animateMovement(playerIdx, oldPos, newPos);
-    
-    // Update position
-    player.position = newPos;
-    
-    // Check for win
-    if (newPos === WINNING_SQUARE) {
-        gameState.finished = true;
-        gameState.winner = playerIdx;
+    try {
+        const playerIdx = gameState.currentPlayer;
+        const player = gameState.players[playerIdx];
+        const oldPos = player.position;
+        let newPos = oldPos + dartScore;
+        
+        // Must land exactly on the winning square — if overshooting, stay put
+        if (newPos > WINNING_SQUARE) {
+            newPos = oldPos;
+        }
+        
+        // Animate movement square by square
+        await animateMovement(playerIdx, oldPos, newPos);
+        
+        // Update position
+        player.position = newPos;
+        
+        // Check for win
+        if (newPos === WINNING_SQUARE) {
+            gameState.finished = true;
+            gameState.winner = playerIdx;
+            positionAllTokens();
+            playWinSound();
+            showWinScreen(player);
+            return;
+        }
+        
+        // Check for snake or ladder
+        if (SNAKES[newPos]) {
+            const dest = SNAKES[newPos].to;
+            await delay(200);
+            await animateSlide(playerIdx, newPos, dest, 'snake');
+            player.position = dest;
+            await smoothReposition(playerIdx);
+        } else if (LADDERS[newPos]) {
+            const dest = LADDERS[newPos].to;
+            await delay(200);
+            await animateSlide(playerIdx, newPos, dest, 'ladder');
+            player.position = dest;
+            await smoothReposition(playerIdx);
+        }
+        
+        // Reposition all tokens (handles overlaps)
         positionAllTokens();
-        playWinSound();
-        showWinScreen(player);
-        gameState.animating = false;
-        return;
-    }
-    
-    // Check for snake or ladder
-    if (SNAKES[newPos]) {
-        const dest = SNAKES[newPos].to;
-        await delay(200);
-        await animateSlide(playerIdx, newPos, dest, 'snake');
-        player.position = dest;
-        await smoothReposition(playerIdx);
-    } else if (LADDERS[newPos]) {
-        const dest = LADDERS[newPos].to;
-        await delay(200);
-        await animateSlide(playerIdx, newPos, dest, 'ladder');
-        player.position = dest;
-        await smoothReposition(playerIdx);
-    }
-    
-    // Reposition all tokens (handles overlaps)
-    positionAllTokens();
-    
-    // Decrement darts remaining
-    gameState.dartsRemaining--;
-    
-    // Next player after 3 darts
-    if (gameState.dartsRemaining <= 0) {
-        gameState.currentPlayer = (gameState.currentPlayer + 1) % gameState.numPlayers;
-        gameState.dartsRemaining = 3;
-        playTurnChangeSound();
-        showTurnIndicator();
-        gameState.animating = false;
-        await showPlayerBanner(gameState.currentPlayer);
-    } else {
-        showTurnIndicator();
+        
+        // Decrement darts remaining
+        gameState.dartsRemaining--;
+        
+        // Next player after 3 darts
+        if (gameState.dartsRemaining <= 0) {
+            gameState.currentPlayer = (gameState.currentPlayer + 1) % gameState.numPlayers;
+            gameState.dartsRemaining = 3;
+            playTurnChangeSound();
+            showTurnIndicator();
+            await showPlayerBanner(gameState.currentPlayer);
+        } else {
+            showTurnIndicator();
+        }
+    } catch (err) {
+        console.error('processMove error:', err);
+    } finally {
+        // Always release the animating lock, even if something above threw.
+        // This guarantees the game can never permanently lock up.
         gameState.animating = false;
     }
 }
