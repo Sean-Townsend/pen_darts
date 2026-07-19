@@ -392,21 +392,12 @@ function showDartButtons() {
             btn.dataset.value = value;
             btn.textContent = labels[idx];
             btn.addEventListener('mouseenter', () => playHoverSound());
-            btn.addEventListener('pointerdown', () => {
-                if (value === 0) {
-                    alert('POINTERDOWN fired on MISS button');
-                }
-            });
             btn.addEventListener('click', () => {
-                alert('CLICK HANDLER FIRED for value=' + value);
                 if (gameState.finished || isStuckAnimating()) return;
                 dismissBannerEarly();
                 // Sound must never be able to block the game — wrap in try/catch
                 safePlaySound(value === 0 ? playMissSound : playDartSound);
-                // TEMP DIAGNOSTIC: MISS moves 1 square instead of 0 so we can
-                // visually confirm the button/handler is actually firing.
-                // Change this back to processMove(value) once confirmed.
-                processMove(value === 0 ? 1 : value);
+                processMove(value);
             });
             btnGrid.appendChild(btn);
         });
@@ -452,7 +443,6 @@ function isStuckAnimating() {
 }
 
 async function processMove(dartScore) {
-    alert('processMove called with dartScore=' + dartScore);
     if (isStuckAnimating()) return;
     gameState.animating = true;
     gameState.animatingSince = Date.now();
