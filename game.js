@@ -349,14 +349,6 @@ function quitGame() {
     showPlayerSelect();
 }
 
-// === BUTTON ACTION HANDLER ===
-// Plain click handling — works reliably for both mouse and touch on all
-// modern browsers. The earlier "stuck highlight" issue was a CSS problem
-// (fixed via @media (hover: hover)), not a JS event problem.
-function attachButtonAction(el, action) {
-    el.addEventListener('click', action);
-}
-
 // === DART INPUT BUTTONS ===
 
 function showDartButtons() {
@@ -366,44 +358,40 @@ function showDartButtons() {
         container.id = 'dartButtons';
         container.classList.add('dart-buttons');
         
-        // Miss button (leftmost)
-        const missBtn = document.createElement('button');
-        missBtn.classList.add('btn-dart', 'btn-miss');
-        missBtn.dataset.value = 0;
-        missBtn.textContent = 'MISS';
-        missBtn.addEventListener('mouseenter', () => playHoverSound());
-        attachButtonAction(missBtn, () => {
-            if (gameState.finished || gameState.animating) return;
-            dismissBannerEarly();
-            playMissSound();
-            processMove(0);
-        });
-        container.appendChild(missBtn);
-        
         // Dice icon
         const diceIcon = document.createElement('div');
         diceIcon.classList.add('dart-dice-icon');
         diceIcon.innerHTML = '🎲';
         container.appendChild(diceIcon);
         
-        // Button grid
+        // Button grid — MISS is button #0, built identically to buttons 1-6
         const btnGrid = document.createElement('div');
         btnGrid.classList.add('dart-btn-grid');
         
-        for (let i = 1; i <= 6; i++) {
+        const values = [0, 1, 2, 3, 4, 5, 6];
+        const labels = ['MISS', '1', '2', '3', '4', '5', '6'];
+        
+        values.forEach((value, idx) => {
             const btn = document.createElement('button');
             btn.classList.add('btn-dart');
-            btn.dataset.value = i;
-            btn.textContent = i;
+            if (value === 0) {
+                btn.classList.add('btn-miss');
+            }
+            btn.dataset.value = value;
+            btn.textContent = labels[idx];
             btn.addEventListener('mouseenter', () => playHoverSound());
-            attachButtonAction(btn, () => {
+            btn.addEventListener('click', () => {
                 if (gameState.finished || gameState.animating) return;
                 dismissBannerEarly();
-                playDartSound();
-                processMove(i);
+                if (value === 0) {
+                    playMissSound();
+                } else {
+                    playDartSound();
+                }
+                processMove(value);
             });
             btnGrid.appendChild(btn);
-        }
+        });
         
         container.appendChild(btnGrid);
         document.querySelector('.game-container').appendChild(container);
