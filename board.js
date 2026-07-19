@@ -388,8 +388,8 @@ function renderLadders() {
         const dx = x2 - x1;
         const dy = y2 - y1;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        const perpX = (-dy / dist) * 7;
-        const perpY = (dx / dist) * 7;
+        const perpX = (-dy / dist) * 12;
+        const perpY = (dx / dist) * 12;
         
         // Left rail
         const rail1 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
@@ -410,7 +410,7 @@ function renderLadders() {
         svg.appendChild(rail2);
         
         // Rungs
-        const numRungs = Math.max(3, Math.floor(dist / 22));
+        const numRungs = Math.max(2, Math.floor(dist / 45));
         for (let i = 1; i <= numRungs; i++) {
             const t = i / (numRungs + 1);
             const rx = x1 + dx * t;
