@@ -349,6 +349,37 @@ function quitGame() {
     showPlayerSelect();
 }
 
+// === TEMPORARY ON-SCREEN DEBUG LOG ===
+// Shows recent events at the top of the screen so we can diagnose issues
+// on devices (like iPad) without access to browser dev tools.
+function showDebug(msg) {
+    let panel = document.getElementById('debugPanel');
+    if (!panel) {
+        panel = document.createElement('div');
+        panel.id = 'debugPanel';
+        panel.style.position = 'fixed';
+        panel.style.top = '0';
+        panel.style.left = '0';
+        panel.style.right = '0';
+        panel.style.background = 'rgba(0,0,0,0.85)';
+        panel.style.color = '#0f0';
+        panel.style.fontFamily = 'monospace';
+        panel.style.fontSize = '11px';
+        panel.style.padding = '4px 8px';
+        panel.style.zIndex = '9999';
+        panel.style.maxHeight = '80px';
+        panel.style.overflowY = 'auto';
+        panel.style.pointerEvents = 'none';
+        document.body.appendChild(panel);
+    }
+    const line = document.createElement('div');
+    line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+    panel.appendChild(line);
+    while (panel.children.length > 6) {
+        panel.removeChild(panel.firstChild);
+    }
+}
+
 // === DART INPUT BUTTONS ===
 
 function showDartButtons() {
@@ -381,6 +412,7 @@ function showDartButtons() {
             btn.textContent = labels[idx];
             btn.addEventListener('mouseenter', () => playHoverSound());
             btn.addEventListener('click', () => {
+                showDebug(`clicked: ${labels[idx]} | animating=${gameState.animating} | finished=${gameState.finished}`);
                 if (gameState.finished || isStuckAnimating()) return;
                 dismissBannerEarly();
                 if (value === 0) {
