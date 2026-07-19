@@ -361,6 +361,35 @@ function safePlaySound(fn) {
     }
 }
 
+// === TEMPORARY ON-SCREEN DEBUG LOG (non-blocking) ===
+function showDebug(msg) {
+    let panel = document.getElementById('debugPanel');
+    if (!panel) {
+        panel = document.createElement('div');
+        panel.id = 'debugPanel';
+        panel.style.position = 'fixed';
+        panel.style.top = '0';
+        panel.style.left = '0';
+        panel.style.right = '0';
+        panel.style.background = 'rgba(0,0,0,0.9)';
+        panel.style.color = '#0f0';
+        panel.style.fontFamily = 'monospace';
+        panel.style.fontSize = '12px';
+        panel.style.padding = '4px 8px';
+        panel.style.zIndex = '99999';
+        panel.style.maxHeight = '120px';
+        panel.style.overflowY = 'auto';
+        panel.style.pointerEvents = 'none';
+        document.body.appendChild(panel);
+    }
+    const line = document.createElement('div');
+    line.textContent = msg;
+    panel.appendChild(line);
+    while (panel.children.length > 10) {
+        panel.removeChild(panel.firstChild);
+    }
+}
+
 // === DART INPUT BUTTONS ===
 
 function showDartButtons() {
@@ -393,11 +422,18 @@ function showDartButtons() {
             btn.textContent = labels[idx];
             btn.addEventListener('mouseenter', () => playHoverSound());
             btn.addEventListener('click', () => {
-                if (gameState.finished || isStuckAnimating()) return;
+                showDebug(`1: click fired, value=${value}`);
+                if (gameState.finished || isStuckAnimating()) {
+                    showDebug(`2: BLOCKED - finished=${gameState.finished}, animating=${gameState.animating}`);
+                    return;
+                }
                 dismissBannerEarly();
+                showDebug(`3: past guard, calling sound + processMove`);
                 // Sound must never be able to block the game — wrap in try/catch
                 safePlaySound(value === 0 ? playMissSound : playDartSound);
+                showDebug(`4: sound done, calling processMove(${value})`);
                 processMove(value);
+                showDebug(`5: processMove call returned (async, fires immediately)`);
             });
             btnGrid.appendChild(btn);
         });
@@ -443,7 +479,11 @@ function isStuckAnimating() {
 }
 
 async function processMove(dartScore) {
-    if (isStuckAnimating()) return;
+    showDebug(`6: processMove ENTERED with dartScore=${dartScore}`);
+    if (isStuckAnimating()) {
+        showDebug(`7: processMove BLOCKED by isStuckAnimating`);
+        return;
+    }
     gameState.animating = true;
     gameState.animatingSince = Date.now();
     
