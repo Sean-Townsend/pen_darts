@@ -392,7 +392,13 @@ function showDartButtons() {
             btn.dataset.value = value;
             btn.textContent = labels[idx];
             btn.addEventListener('mouseenter', () => playHoverSound());
+            btn.addEventListener('pointerdown', () => {
+                if (value === 0) {
+                    alert('POINTERDOWN fired on MISS button');
+                }
+            });
             btn.addEventListener('click', () => {
+                alert('CLICK HANDLER FIRED for value=' + value);
                 if (gameState.finished || isStuckAnimating()) return;
                 dismissBannerEarly();
                 // Sound must never be able to block the game — wrap in try/catch
