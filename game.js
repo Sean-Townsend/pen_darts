@@ -446,6 +446,7 @@ function isStuckAnimating() {
 }
 
 async function processMove(dartScore) {
+    alert('processMove called with dartScore=' + dartScore);
     if (isStuckAnimating()) return;
     gameState.animating = true;
     gameState.animatingSince = Date.now();
