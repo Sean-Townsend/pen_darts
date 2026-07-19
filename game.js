@@ -26,7 +26,7 @@ const gameState = {
 const PLAYER_COLORS = ['#e74c3c', '#3498db', '#2ecc71', '#f39c12'];
 const PLAYER_NAMES = ['Player 1', 'Player 2', 'Player 3', 'Player 4'];
 const WINNING_SQUARE = 65;
-const TOKEN_RADIUS = 14;
+const TOKEN_RADIUS = 32;
 
 // === PLAYER SELECT SCREEN ===
 
@@ -106,6 +106,9 @@ function startGame(numPlayers) {
     // Show dart input buttons
     showDartButtons();
     
+    // Show quit button
+    showQuitButton();
+    
     // Show initial player banner
     showPlayerBanner(0);
     
@@ -144,14 +147,22 @@ function createTokens() {
         token.classList.add('player-token');
         token.dataset.player = i;
         token.style.background = player.color;
-        token.style.width = '28px';
-        token.style.height = '28px';
+        token.style.width = '64px';
+        token.style.height = '64px';
         token.style.borderRadius = '50%';
-        token.style.border = '2px solid #fff';
+        token.style.border = '3px solid #fff';
         token.style.position = 'absolute';
         token.style.zIndex = '20';
-        token.style.boxShadow = '0 2px 4px rgba(0,0,0,0.4)';
+        token.style.boxShadow = '0 2px 6px rgba(0,0,0,0.5)';
         token.style.transition = 'none';
+        token.style.display = 'flex';
+        token.style.alignItems = 'center';
+        token.style.justifyContent = 'center';
+        token.style.fontFamily = "'Bebas Neue', sans-serif";
+        token.style.fontSize = '30px';
+        token.style.color = '#fff';
+        token.style.textShadow = '0 1px 2px rgba(0,0,0,0.6)';
+        token.textContent = (i + 1);
         document.querySelector('.game-container').appendChild(token);
     });
     
@@ -216,7 +227,7 @@ function getTokenPosition(squareNum) {
 
 function getTokenOffsets(count) {
     // Offset tokens so they don't overlap
-    const spacing = 12;
+    const spacing = 30;
     switch (count) {
         case 1: return [{ x: 0, y: 0 }];
         case 2: return [{ x: -spacing/2, y: 0 }, { x: spacing/2, y: 0 }];
@@ -249,7 +260,10 @@ function showTurnIndicator() {
     updatePlayerArea();
 }
 
-async function showPlayerBanner(playerIdx) {
+let bannerResolve = null;
+let bannerTimeoutId = null;
+
+function showPlayerBanner(playerIdx) {
     const player = gameState.players[playerIdx];
     
     let banner = document.getElementById('playerBanner');
@@ -262,10 +276,77 @@ async function showPlayerBanner(playerIdx) {
     
     banner.innerHTML = `<span style="color: ${player.color};">${player.name}</span> to play!`;
     banner.classList.add('show');
+    gameState.bannerActive = true;
     
-    await delay(1200);
+    return new Promise(resolve => {
+        bannerResolve = () => {
+            banner.classList.remove('show');
+            gameState.bannerActive = false;
+            bannerResolve = null;
+            clearTimeout(bannerTimeoutId);
+            resolve();
+        };
+        bannerTimeoutId = setTimeout(() => {
+            if (bannerResolve) bannerResolve();
+        }, 2500);
+    });
+}
+
+function dismissBannerEarly() {
+    if (gameState.bannerActive && bannerResolve) {
+        bannerResolve();
+    }
+}
+
+// === QUIT BUTTON ===
+
+function showQuitButton() {
+    let btn = document.getElementById('quitButton');
+    if (!btn) {
+        btn = document.createElement('button');
+        btn.id = 'quitButton';
+        btn.classList.add('btn-quit');
+        btn.textContent = 'Quit';
+        btn.addEventListener('mouseenter', () => playHoverSound());
+        btn.addEventListener('click', () => {
+            quitGame();
+        });
+        document.querySelector('.game-container').appendChild(btn);
+    }
+    btn.style.display = 'block';
+}
+
+function hideQuitButton() {
+    const btn = document.getElementById('quitButton');
+    if (btn) btn.style.display = 'none';
+}
+
+function quitGame() {
+    playSelectSound();
     
-    banner.classList.remove('show');
+    // Reset game state
+    gameState.finished = true;
+    gameState.animating = false;
+    document.removeEventListener('keydown', handleKeyPress);
+    
+    // Clean up UI elements
+    document.querySelectorAll('.player-token').forEach(t => t.remove());
+    hideQuitButton();
+    const dartButtons = document.getElementById('dartButtons');
+    if (dartButtons) dartButtons.style.display = 'none';
+    const turnIndicator = document.getElementById('turnIndicator');
+    if (turnIndicator) turnIndicator.style.display = 'none';
+    const banner = document.getElementById('playerBanner');
+    if (banner) banner.classList.remove('show');
+    
+    // Reset player area
+    document.querySelectorAll('.player-area .player').forEach(el => {
+        el.style.display = 'none';
+        el.classList.remove('active-player');
+    });
+    
+    // Back to player select
+    showPlayerSelect();
 }
 
 // === DART INPUT BUTTONS ===
@@ -276,6 +357,20 @@ function showDartButtons() {
         container = document.createElement('div');
         container.id = 'dartButtons';
         container.classList.add('dart-buttons');
+        
+        // Miss button (leftmost)
+        const missBtn = document.createElement('button');
+        missBtn.classList.add('btn-dart', 'btn-miss');
+        missBtn.dataset.value = 0;
+        missBtn.textContent = 'MISS';
+        missBtn.addEventListener('mouseenter', () => playHoverSound());
+        missBtn.addEventListener('click', () => {
+            if (gameState.finished || gameState.animating) return;
+            dismissBannerEarly();
+            playMissSound();
+            processMove(0);
+        });
+        container.appendChild(missBtn);
         
         // Dice icon
         const diceIcon = document.createElement('div');
@@ -295,6 +390,7 @@ function showDartButtons() {
             btn.addEventListener('mouseenter', () => playHoverSound());
             btn.addEventListener('click', () => {
                 if (gameState.finished || gameState.animating) return;
+                dismissBannerEarly();
                 playDartSound();
                 processMove(i);
             });
@@ -318,8 +414,13 @@ function handleKeyPress(e) {
     
     const key = parseInt(e.key);
     if (key >= 1 && key <= 6) {
+        dismissBannerEarly();
         playDartSound();
         processMove(key);
+    } else if (e.key === '0' || e.key.toLowerCase() === 'm') {
+        dismissBannerEarly();
+        playMissSound();
+        processMove(0);
     }
 }
 
@@ -334,10 +435,9 @@ async function processMove(dartScore) {
     const oldPos = player.position;
     let newPos = oldPos + dartScore;
     
-    // Exact finish rule — bounce back if over 64
+    // Must land exactly on the winning square — if overshooting, stay put
     if (newPos > WINNING_SQUARE) {
-        const overshoot = newPos - WINNING_SQUARE;
-        newPos = WINNING_SQUARE - overshoot;
+        newPos = oldPos;
     }
     
     // Animate movement square by square
@@ -384,12 +484,12 @@ async function processMove(dartScore) {
         gameState.dartsRemaining = 3;
         playTurnChangeSound();
         showTurnIndicator();
+        gameState.animating = false;
         await showPlayerBanner(gameState.currentPlayer);
     } else {
         showTurnIndicator();
+        gameState.animating = false;
     }
-    
-    gameState.animating = false;
 }
 
 // === ANIMATIONS ===
