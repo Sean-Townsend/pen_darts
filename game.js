@@ -350,11 +350,23 @@ function quitGame() {
 }
 
 // === BUTTON ACTION HANDLER ===
-// Simple, reliable click handling. Blurs the button afterward so focus/hover
-// styling doesn't linger on touch devices (the actual hover fix lives in CSS
-// via @media (hover: hover), this blur is just a extra safety net).
+// Handles both touch and mouse reliably. iOS Safari can occasionally fail to
+// fire a synthetic 'click' after 'touchend' (especially on non-circular
+// buttons), so we handle touchend directly and prevent the duplicate click.
 function attachButtonAction(el, action) {
+    let handledByTouch = false;
+    
+    el.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        handledByTouch = true;
+        action();
+        el.blur();
+        // Reset the flag shortly after so a real mouse click still works later
+        setTimeout(() => { handledByTouch = false; }, 400);
+    }, { passive: false });
+    
     el.addEventListener('click', () => {
+        if (handledByTouch) return;
         action();
         el.blur();
     });
