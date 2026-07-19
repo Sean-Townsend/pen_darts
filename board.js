@@ -468,7 +468,7 @@ function renderDartboard() {
             <text font-family="'Permanent Marker', cursive" font-size="36" fill="#ffffff" letter-spacing="4" stroke="#000000" stroke-width="3" paint-order="stroke fill">
                 <textPath href="#penbarArc" startOffset="50%" text-anchor="middle">PenBar</textPath>
             </text>
-            <text font-family="'Permanent Marker', 'Arial', cursive" font-size="26" fill="#ffffff" letter-spacing="2" stroke="#000000" stroke-width="2.5" paint-order="stroke fill">
+            <text font-family="'Permanent Marker', 'Arial', cursive" font-size="30" fill="#ffffff" letter-spacing="1" stroke="#000000" stroke-width="2.5" paint-order="stroke fill">
                 <textPath href="#snakesArc" startOffset="50%" text-anchor="middle">Snakes &amp; Ladders</textPath>
             </text>
         </svg>
