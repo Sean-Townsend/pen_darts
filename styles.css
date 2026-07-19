@@ -26,6 +26,7 @@ body {
         0 0 0 3px #2d1a0e;
     width: calc(100vw - 40px);
     height: calc(100vh - 40px);
+    height: calc(100dvh - 40px);
 }
 
 /* === GAME CONTAINER === */
@@ -672,8 +673,8 @@ body {
 /* === QUIT BUTTON === */
 .btn-quit {
     position: absolute;
-    top: 15px;
-    left: 15px;
+    top: max(15px, env(safe-area-inset-top));
+    left: max(15px, env(safe-area-inset-left));
     padding: 16px 36px;
     border-radius: 10px;
     border: 2px solid #e74c3c;
