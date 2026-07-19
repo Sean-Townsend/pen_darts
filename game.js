@@ -349,6 +349,32 @@ function quitGame() {
     showPlayerSelect();
 }
 
+// === ROBUST BUTTON ACTION HANDLER (fixes iOS double-tap issues) ===
+// Uses pointerup instead of click for more reliable repeated taps on touch devices,
+// and blurs the button afterward to prevent stuck focus/hover state.
+function attachButtonAction(el, action) {
+    let lastTriggered = 0;
+    
+    const trigger = (e) => {
+        e.preventDefault();
+        const now = Date.now();
+        if (now - lastTriggered < 150) return; // debounce accidental double-fires
+        lastTriggered = now;
+        action();
+        el.blur();
+    };
+    
+    el.addEventListener('pointerup', trigger);
+    // Fallback for browsers without pointer events
+    el.addEventListener('click', (e) => {
+        if (Date.now() - lastTriggered < 150) {
+            e.preventDefault();
+            return;
+        }
+        trigger(e);
+    });
+}
+
 // === DART INPUT BUTTONS ===
 
 function showDartButtons() {
@@ -364,7 +390,7 @@ function showDartButtons() {
         missBtn.dataset.value = 0;
         missBtn.textContent = 'MISS';
         missBtn.addEventListener('mouseenter', () => playHoverSound());
-        missBtn.addEventListener('click', () => {
+        attachButtonAction(missBtn, () => {
             if (gameState.finished || gameState.animating) return;
             dismissBannerEarly();
             playMissSound();
@@ -388,7 +414,7 @@ function showDartButtons() {
             btn.dataset.value = i;
             btn.textContent = i;
             btn.addEventListener('mouseenter', () => playHoverSound());
-            btn.addEventListener('click', () => {
+            attachButtonAction(btn, () => {
                 if (gameState.finished || gameState.animating) return;
                 dismissBannerEarly();
                 playDartSound();
