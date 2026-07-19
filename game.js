@@ -350,26 +350,11 @@ function quitGame() {
 }
 
 // === BUTTON ACTION HANDLER ===
-// Handles both touch and mouse reliably. iOS Safari can occasionally fail to
-// fire a synthetic 'click' after 'touchend' (especially on non-circular
-// buttons), so we handle touchend directly and prevent the duplicate click.
+// Plain click handling — works reliably for both mouse and touch on all
+// modern browsers. The earlier "stuck highlight" issue was a CSS problem
+// (fixed via @media (hover: hover)), not a JS event problem.
 function attachButtonAction(el, action) {
-    let handledByTouch = false;
-    
-    el.addEventListener('touchend', (e) => {
-        e.preventDefault();
-        handledByTouch = true;
-        action();
-        el.blur();
-        // Reset the flag shortly after so a real mouse click still works later
-        setTimeout(() => { handledByTouch = false; }, 400);
-    }, { passive: false });
-    
-    el.addEventListener('click', () => {
-        if (handledByTouch) return;
-        action();
-        el.blur();
-    });
+    el.addEventListener('click', action);
 }
 
 // === DART INPUT BUTTONS ===
