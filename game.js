@@ -349,34 +349,15 @@ function quitGame() {
     showPlayerSelect();
 }
 
-// === TEMPORARY ON-SCREEN DEBUG LOG ===
-// Shows recent events at the top of the screen so we can diagnose issues
-// on devices (like iPad) without access to browser dev tools.
-function showDebug(msg) {
-    let panel = document.getElementById('debugPanel');
-    if (!panel) {
-        panel = document.createElement('div');
-        panel.id = 'debugPanel';
-        panel.style.position = 'fixed';
-        panel.style.top = '0';
-        panel.style.left = '0';
-        panel.style.right = '0';
-        panel.style.background = 'rgba(0,0,0,0.85)';
-        panel.style.color = '#0f0';
-        panel.style.fontFamily = 'monospace';
-        panel.style.fontSize = '11px';
-        panel.style.padding = '4px 8px';
-        panel.style.zIndex = '9999';
-        panel.style.maxHeight = '80px';
-        panel.style.overflowY = 'auto';
-        panel.style.pointerEvents = 'none';
-        document.body.appendChild(panel);
-    }
-    const line = document.createElement('div');
-    line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
-    panel.appendChild(line);
-    while (panel.children.length > 6) {
-        panel.removeChild(panel.firstChild);
+// === SAFE SOUND WRAPPER ===
+// Sound is a nice-to-have, not critical gameplay logic. If audio playback
+// throws for any reason (unsupported browser feature, audio context issue,
+// etc.), it must never block the actual game action from continuing.
+function safePlaySound(fn) {
+    try {
+        fn();
+    } catch (err) {
+        console.warn('Sound playback failed (non-fatal):', err);
     }
 }
 
@@ -412,14 +393,10 @@ function showDartButtons() {
             btn.textContent = labels[idx];
             btn.addEventListener('mouseenter', () => playHoverSound());
             btn.addEventListener('click', () => {
-                showDebug(`clicked: ${labels[idx]} | animating=${gameState.animating} | finished=${gameState.finished}`);
                 if (gameState.finished || isStuckAnimating()) return;
                 dismissBannerEarly();
-                if (value === 0) {
-                    playMissSound();
-                } else {
-                    playDartSound();
-                }
+                // Sound must never be able to block the game — wrap in try/catch
+                safePlaySound(value === 0 ? playMissSound : playDartSound);
                 processMove(value);
             });
             btnGrid.appendChild(btn);
@@ -443,11 +420,11 @@ function handleKeyPress(e) {
     const key = parseInt(e.key);
     if (key >= 1 && key <= 6) {
         dismissBannerEarly();
-        playDartSound();
+        safePlaySound(playDartSound);
         processMove(key);
     } else if (e.key === '0' || e.key.toLowerCase() === 'm') {
         dismissBannerEarly();
-        playMissSound();
+        safePlaySound(playMissSound);
         processMove(0);
     }
 }
