@@ -679,20 +679,9 @@ body {
 }
 
 .btn-miss {
-    width: auto;
-    min-width: 110px;
-    flex-shrink: 0;
-    height: 78px;
-    padding: 0 32px;
-    border-radius: 36px;
+    font-size: 18px;
     border-color: #888;
     color: #ccc;
-    font-size: 32px;
-    margin-right: 24px;
-    white-space: nowrap;
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
-    user-select: none;
 }
 
 @media (hover: hover) {
@@ -810,11 +799,7 @@ body {
 }
 
 .btn-miss {
-    height: 6vh;
-    min-width: 8vh;
-    font-size: 2vh;
-    padding: 0 1.5vw;
-    margin-right: 1.5vw;
+    font-size: 1.4vh;
 }
 
 .board-grid,
