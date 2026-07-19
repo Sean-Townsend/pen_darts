@@ -428,12 +428,13 @@ function showDartButtons() {
                     return;
                 }
                 dismissBannerEarly();
-                showDebug(`3: past guard, calling sound + processMove`);
-                // Sound must never be able to block the game — wrap in try/catch
-                safePlaySound(value === 0 ? playMissSound : playDartSound);
-                showDebug(`4: sound done, calling processMove(${value})`);
+                showDebug(`3: past guard, about to call processMove (sound skipped for this test)`);
                 processMove(value);
-                showDebug(`5: processMove call returned (async, fires immediately)`);
+                showDebug(`4: processMove call returned (async, fires immediately)`);
+                // Play sound AFTER kicking off the move, so a slow/blocking
+                // audio call can never delay gameplay logic.
+                safePlaySound(value === 0 ? playMissSound : playDartSound);
+                showDebug(`5: sound call done`);
             });
             btnGrid.appendChild(btn);
         });
