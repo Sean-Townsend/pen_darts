@@ -453,10 +453,12 @@ body {
     transition: all 0.2s;
 }
 
-.btn-player-count:hover {
-    background: #f5e6a3;
-    color: #1a0a1a;
-    transform: scale(1.1);
+@media (hover: hover) {
+    .btn-player-count:hover {
+        background: #f5e6a3;
+        color: #1a0a1a;
+        transform: scale(1.1);
+    }
 }
 
 /* Win screen */
@@ -503,9 +505,11 @@ body {
     letter-spacing: 2px;
 }
 
-.btn-play-again:hover {
-    background: transparent;
-    color: #e74c3c;
+@media (hover: hover) {
+    .btn-play-again:hover {
+        background: transparent;
+        color: #e74c3c;
+    }
 }
 
 /* Turn indicator */
@@ -666,10 +670,12 @@ body {
     -webkit-tap-highlight-color: transparent;
 }
 
-.btn-dart:hover {
-    background: #f5e6a3;
-    color: #1a0a1a;
-    transform: scale(1.15);
+@media (hover: hover) {
+    .btn-dart:hover {
+        background: #f5e6a3;
+        color: #1a0a1a;
+        transform: scale(1.15);
+    }
 }
 
 .btn-miss {
@@ -689,13 +695,22 @@ body {
     user-select: none;
 }
 
-.btn-miss:hover {
-    background: #888;
-    color: #1a0a1a;
+@media (hover: hover) {
+    .btn-miss:hover {
+        background: #888;
+        color: #1a0a1a;
+    }
 }
 
 .btn-dart:focus {
     outline: none;
+}
+
+/* Touch-friendly active feedback (brief flash on tap, doesn't stick) */
+.btn-dart:active {
+    background: #f5e6a3;
+    color: #1a0a1a;
+    transform: scale(0.95);
 }
 
 /* === QUIT BUTTON === */
@@ -718,9 +733,11 @@ body {
     z-index: 60;
 }
 
-.btn-quit:hover {
-    background: #e74c3c;
-    color: #fff;
+@media (hover: hover) {
+    .btn-quit:hover {
+        background: #e74c3c;
+        color: #fff;
+    }
 }
 
 /* === PROPORTIONAL SCALING (uses viewport units so it fits any screen size) === */
