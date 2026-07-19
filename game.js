@@ -397,7 +397,10 @@ function showDartButtons() {
                 dismissBannerEarly();
                 // Sound must never be able to block the game — wrap in try/catch
                 safePlaySound(value === 0 ? playMissSound : playDartSound);
-                processMove(value);
+                // TEMP DIAGNOSTIC: MISS moves 1 square instead of 0 so we can
+                // visually confirm the button/handler is actually firing.
+                // Change this back to processMove(value) once confirmed.
+                processMove(value === 0 ? 1 : value);
             });
             btnGrid.appendChild(btn);
         });
