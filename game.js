@@ -361,35 +361,6 @@ function safePlaySound(fn) {
     }
 }
 
-// === TEMPORARY ON-SCREEN DEBUG LOG (non-blocking) ===
-function showDebug(msg) {
-    let panel = document.getElementById('debugPanel');
-    if (!panel) {
-        panel = document.createElement('div');
-        panel.id = 'debugPanel';
-        panel.style.position = 'fixed';
-        panel.style.top = '0';
-        panel.style.left = '0';
-        panel.style.right = '0';
-        panel.style.background = 'rgba(0,0,0,0.9)';
-        panel.style.color = '#0f0';
-        panel.style.fontFamily = 'monospace';
-        panel.style.fontSize = '12px';
-        panel.style.padding = '4px 8px';
-        panel.style.zIndex = '99999';
-        panel.style.maxHeight = '120px';
-        panel.style.overflowY = 'auto';
-        panel.style.pointerEvents = 'none';
-        document.body.appendChild(panel);
-    }
-    const line = document.createElement('div');
-    line.textContent = msg;
-    panel.appendChild(line);
-    while (panel.children.length > 10) {
-        panel.removeChild(panel.firstChild);
-    }
-}
-
 // === DART INPUT BUTTONS ===
 
 function showDartButtons() {
@@ -422,19 +393,12 @@ function showDartButtons() {
             btn.textContent = labels[idx];
             btn.addEventListener('mouseenter', () => playHoverSound());
             btn.addEventListener('click', () => {
-                showDebug(`1: click fired, value=${value}`);
-                if (gameState.finished || isStuckAnimating()) {
-                    showDebug(`2: BLOCKED - finished=${gameState.finished}, animating=${gameState.animating}`);
-                    return;
-                }
+                if (gameState.finished || isStuckAnimating()) return;
                 dismissBannerEarly();
-                showDebug(`3: past guard, about to call processMove (sound skipped for this test)`);
                 processMove(value);
-                showDebug(`4: processMove call returned (async, fires immediately)`);
-                // Play sound AFTER kicking off the move, so a slow/blocking
-                // audio call can never delay gameplay logic.
+                // Sound plays after kicking off the move so it can never
+                // delay or block gameplay logic.
                 safePlaySound(value === 0 ? playMissSound : playDartSound);
-                showDebug(`5: sound call done`);
             });
             btnGrid.appendChild(btn);
         });
@@ -457,12 +421,12 @@ function handleKeyPress(e) {
     const key = parseInt(e.key);
     if (key >= 1 && key <= 6) {
         dismissBannerEarly();
-        safePlaySound(playDartSound);
         processMove(key);
+        safePlaySound(playDartSound);
     } else if (e.key === '0' || e.key.toLowerCase() === 'm') {
         dismissBannerEarly();
-        safePlaySound(playMissSound);
         processMove(0);
+        safePlaySound(playMissSound);
     }
 }
 
@@ -480,11 +444,7 @@ function isStuckAnimating() {
 }
 
 async function processMove(dartScore) {
-    showDebug(`6: processMove ENTERED with dartScore=${dartScore}`);
-    if (isStuckAnimating()) {
-        showDebug(`7: processMove BLOCKED by isStuckAnimating`);
-        return;
-    }
+    if (isStuckAnimating()) return;
     gameState.animating = true;
     gameState.animatingSince = Date.now();
     
