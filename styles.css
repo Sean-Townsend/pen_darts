@@ -705,3 +705,125 @@ body {
     background: #e74c3c;
     color: #fff;
 }
+
+/* === RESPONSIVE SCALING FOR SMALLER SCREENS (TABLETS/IPAD) === */
+@media (max-width: 1200px), (max-height: 900px) {
+    .btn-quit {
+        padding: 8px 18px;
+        font-size: 16px;
+        border-radius: 6px;
+    }
+
+    .named-square .named-label {
+        font-size: 20px;
+    }
+
+    .board-square .square-number,
+    .named-square .square-number {
+        font-size: 13px;
+    }
+
+    .champion-content .trophy {
+        font-size: 32px;
+    }
+
+    .champion-content .champion-text {
+        font-size: 16px;
+    }
+
+    .board-square.square-start .start-text {
+        font-size: 22px;
+    }
+
+    .board-square.square-start .start-arrow {
+        font-size: 30px;
+    }
+
+    .player-area {
+        height: 110px;
+        gap: 20px;
+        padding: 8px 10px 8px 20px;
+    }
+
+    .player-avatar {
+        width: 48px;
+        height: 48px;
+        font-size: 20px;
+    }
+
+    .player-name {
+        font-size: 14px;
+    }
+
+    .dart-buttons {
+        gap: 8px;
+        bottom: 8px;
+        right: 10px;
+    }
+
+    .dart-dice-icon {
+        font-size: 40px;
+    }
+
+    .dart-btn-grid {
+        gap: 10px;
+    }
+
+    .btn-dart {
+        width: 40px;
+        height: 40px;
+        min-width: 40px;
+        font-size: 18px;
+        border-width: 2px;
+    }
+
+    .btn-miss {
+        height: 40px;
+        min-width: 60px;
+        font-size: 15px;
+        padding: 0 12px;
+        margin-right: 10px;
+        border-width: 2px;
+    }
+
+    .board-grid,
+    .overlay-svg {
+        height: calc(100% - 110px);
+    }
+}
+
+/* Even smaller / narrow tablets */
+@media (max-width: 850px) {
+    .player-area {
+        gap: 10px;
+        padding: 6px 8px 6px 12px;
+    }
+
+    .player-avatar {
+        width: 38px;
+        height: 38px;
+        font-size: 16px;
+    }
+
+    .player-name {
+        font-size: 11px;
+    }
+
+    .dart-dice-icon {
+        font-size: 32px;
+    }
+
+    .btn-dart {
+        width: 34px;
+        height: 34px;
+        min-width: 34px;
+        font-size: 15px;
+    }
+
+    .btn-miss {
+        height: 34px;
+        min-width: 48px;
+        font-size: 12px;
+        padding: 0 8px;
+    }
+}
