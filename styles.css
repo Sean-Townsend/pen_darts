@@ -511,7 +511,7 @@ body {
 /* Turn indicator */
 .turn-indicator {
     position: absolute;
-    bottom: -40px;
+    top: max(15px, env(safe-area-inset-top));
     left: 50%;
     transform: translateX(-50%);
     display: flex;
@@ -521,6 +521,8 @@ body {
     background: rgba(0,0,0,0.8);
     border-radius: 20px;
     white-space: nowrap;
+    z-index: 40;
+    pointer-events: none;
 }
 
 .turn-dot {
