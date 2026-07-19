@@ -14,6 +14,7 @@ button {
 html, body {
     height: 100%;
     overflow: hidden;
+    touch-action: manipulation;
 }
 
 body {
@@ -113,7 +114,7 @@ body {
 .champion-content {
     text-align: center;
     z-index: 2;
-    margin-left: 15%;
+    margin-left: 35%;
 }
 
 .champion-content .trophy {
@@ -689,6 +690,10 @@ body {
 .btn-miss:hover {
     background: #888;
     color: #1a0a1a;
+}
+
+.btn-dart:focus {
+    outline: none;
 }
 
 /* === QUIT BUTTON === */
