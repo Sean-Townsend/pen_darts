@@ -315,7 +315,9 @@ function updatePlayerOverlays() {
                 seg.setAttribute('fill', '#2a2a2a');
                 seg.setAttribute('opacity', '0.75');
             } else if (s < livesFilled) {
-                seg.setAttribute('fill', player.color);
+                // Inner band is darkest, outer band is lightest — adds
+                // a bit of depth/variety instead of one flat colour.
+                seg.setAttribute('fill', shadeColor(player.color, s));
                 seg.setAttribute('opacity', hasBonusLives ? '1' : '0.85');
             } else {
                 seg.setAttribute('fill', '#1a1a1a');
@@ -752,6 +754,25 @@ function renderDartboard(target, { onSegmentTap }) {
             el.addEventListener('click', () => onSegmentTap(num));
         }
     });
+}
+
+// Lightens a hex color by a percentage based on band index (0 = darkest,
+// higher index = progressively lighter). Used so each player's 3 life
+// bands go from dark (center) to light (outer edge) instead of one flat tone.
+function shadeColor(hex, bandIndex) {
+    const percentPerBand = 18; // how much lighter each successive band gets
+    const amount = bandIndex * percentPerBand;
+
+    const num = parseInt(hex.replace('#', ''), 16);
+    let r = (num >> 16) & 0xff;
+    let g = (num >> 8) & 0xff;
+    let b = num & 0xff;
+
+    r = Math.min(255, Math.round(r + (255 - r) * (amount / 100)));
+    g = Math.min(255, Math.round(g + (255 - g) * (amount / 100)));
+    b = Math.min(255, Math.round(b + (255 - b) * (amount / 100)));
+
+    return `rgb(${r}, ${g}, ${b})`;
 }
 
 function arcPathD(cx, cy, r, startAngle, endAngle) {
