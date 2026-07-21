@@ -421,18 +421,24 @@ function renderThrowControls() {
     const controls = document.getElementById('throwControls');
     if (!controls) return;
 
+    // Reset any in-progress throw selection when controls are (re)rendered
+    gameState.selectedSegment = null;
+    gameState.selectedMultiplier = null;
+
     controls.innerHTML = `
         <div class="multiplier-col">
             <button class="btn-mult" data-mult="1">SINGLE</button>
             <button class="btn-mult" data-mult="2">DOUBLE</button>
             <button class="btn-mult" data-mult="3">TREBLE</button>
         </div>
-        <div class="throw-status" id="throwStatus">Tap a number</div>
+        <div class="throw-status" id="throwStatus">Select number + multiplier</div>
+        <button class="btn-confirm-throw" id="btnConfirmThrow" disabled>ENTER</button>
         <button class="btn-miss-throw" id="btnMissThrow">MISS</button>
     `;
 
     document.querySelectorAll('.btn-mult').forEach(btn => {
         btn.addEventListener('click', () => {
+            if (gameState.animating) return;
             gameState.selectedMultiplier = parseInt(btn.dataset.mult);
             document.querySelectorAll('.btn-mult').forEach(b => b.classList.remove('selected'));
             btn.classList.add('selected');
@@ -443,30 +449,66 @@ function renderThrowControls() {
 
     document.getElementById('btnMissThrow').addEventListener('click', () => {
         if (gameState.animating) return;
+        gameState.animating = true;
         safePlaySound(playMissSound);
+        clearThrowSelection();
         advanceDart();
     });
 
-    // Default to single selected
-    gameState.selectedMultiplier = 1;
-    document.querySelector('.btn-mult[data-mult="1"]').classList.add('selected');
+    document.getElementById('btnConfirmThrow').addEventListener('click', () => {
+        if (gameState.animating) return;
+        if (gameState.selectedSegment == null || gameState.selectedMultiplier == null) return;
+        commitThrow(gameState.selectedSegment, gameState.selectedMultiplier);
+    });
 }
 
 function updateThrowStatus() {
     const status = document.getElementById('throwStatus');
+    const confirmBtn = document.getElementById('btnConfirmThrow');
     if (!status) return;
+
     const multNames = { 1: 'SINGLE', 2: 'DOUBLE', 3: 'TREBLE' };
-    status.textContent = `${multNames[gameState.selectedMultiplier]} selected — tap a number`;
+    const numPart = gameState.selectedSegment != null ? gameState.selectedSegment : '—';
+    const multPart = gameState.selectedMultiplier != null ? multNames[gameState.selectedMultiplier] : '—';
+    status.textContent = `${multPart} ${numPart}`;
+
+    const ready = gameState.selectedSegment != null && gameState.selectedMultiplier != null;
+    if (confirmBtn) confirmBtn.disabled = !ready;
+}
+
+function clearThrowSelection() {
+    gameState.selectedSegment = null;
+    gameState.selectedMultiplier = null;
+    document.querySelectorAll('.btn-mult').forEach(b => b.classList.remove('selected'));
+    highlightSelectedSegment(null);
+    updateThrowStatus();
+}
+
+// Highlight the currently-selected number's wedge on the dartboard so the
+// player can see what they've picked before confirming.
+function highlightSelectedSegment(number) {
+    document.querySelectorAll('.dartboard-segment').forEach(el => {
+        el.classList.toggle('segment-selected', number != null && parseInt(el.dataset.num) === number);
+    });
 }
 
 // === GAMEPLAY: HANDLE A THROW ===
+// Tapping the board only SELECTS a number — it doesn't commit the throw.
+// The player can tap a different number or a different multiplier as many
+// times as they like. Pressing ENTER (once both are chosen) commits it.
 
 function handlePlayTap(number) {
     if (gameState.animating) return;
+    gameState.selectedSegment = number;
+    safePlaySound(playHoverSound);
+    highlightSelectedSegment(number);
+    updateThrowStatus();
+}
+
+function commitThrow(number, multiplier) {
     gameState.animating = true;
 
     const shooter = gameState.players[gameState.currentPlayerIdx];
-    const multiplier = gameState.selectedMultiplier;
     const targetPlayer = gameState.players.find(p => p.number === number && !p.eliminated);
 
     try {
@@ -480,6 +522,7 @@ function handlePlayTap(number) {
         }
     } finally {
         updatePlayerOverlays();
+        clearThrowSelection();
         advanceDart();
     }
 }

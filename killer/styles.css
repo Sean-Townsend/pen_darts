@@ -421,9 +421,45 @@ body {
 }
 
 .throw-status {
-    font-size: 13px;
+    font-size: 15px;
     color: #ccc;
     text-align: center;
+    font-family: 'Bebas Neue', sans-serif;
+    letter-spacing: 1px;
+}
+
+.btn-confirm-throw {
+    width: 100%;
+    padding: 14px 8px;
+    border-radius: 12px;
+    border: 3px solid #2ecc71;
+    background: #2ecc71;
+    color: #08301a;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    cursor: pointer;
+}
+
+.btn-confirm-throw:disabled {
+    background: rgba(0,0,0,0.5);
+    border-color: #555;
+    color: #666;
+    cursor: default;
+}
+
+@media (hover: hover) {
+    .btn-confirm-throw:not(:disabled):hover {
+        background: transparent;
+        color: #2ecc71;
+    }
+}
+
+.dartboard-segment.segment-selected {
+    filter: brightness(1.6);
+    stroke: #fff;
+    stroke-width: 3;
 }
 
 .btn-miss-throw {
