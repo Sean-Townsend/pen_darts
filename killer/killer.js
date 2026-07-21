@@ -259,9 +259,10 @@ function renderTurnIndicator() {
 }
 
 // === PLAYER OVERLAYS ON THE DARTBOARD ITSELF ===
-// Instead of a separate side panel, each player's claimed number wedge shows
-// a colored border (ownership), a life-count badge, and killer/eliminated
-// status directly on the board — keeps eyes on the board during play.
+// Each claimed number's wedge is split into 3 angular life-segments.
+// A filled segment (player color) = a life still held. A lost life turns
+// that segment dark. This keeps lives visible right on the board instead
+// of in a separate panel.
 
 function updatePlayerOverlays() {
     const svg = document.querySelector('#dartboardWrap .dartboard-svg');
@@ -278,6 +279,7 @@ function updatePlayerOverlays() {
     const cx = size / 2;
     const cy = size / 2;
     const segAngle = 360 / 20;
+    const LIFE_SEGMENTS = 3;
 
     gameState.players.forEach(player => {
         if (player.number == null) return;
@@ -285,76 +287,111 @@ function updatePlayerOverlays() {
         const i = DARTBOARD_ORDER.indexOf(player.number);
         if (i === -1) return;
 
-        const startAngle = (i * segAngle - 90 - segAngle / 2) * Math.PI / 180;
-        const endAngle = ((i + 1) * segAngle - 90 - segAngle / 2) * Math.PI / 180;
+        const wedgeStart = (i * segAngle - 90 - segAngle / 2) * Math.PI / 180;
+        const wedgeEnd = ((i + 1) * segAngle - 90 - segAngle / 2) * Math.PI / 180;
         const midAngle = (i * segAngle - 90) * Math.PI / 180;
+        const subAngle = (wedgeEnd - wedgeStart) / LIFE_SEGMENTS;
 
-        // Ownership border around the segment
-        const d = segmentPathD(cx, cy, 20, WEDGE_OUTER_R, startAngle, endAngle);
-        const borderEl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        borderEl.setAttribute('d', d);
-        borderEl.setAttribute('fill', 'none');
-        borderEl.setAttribute('stroke', player.color);
-        borderEl.setAttribute('stroke-width', player.eliminated ? 2 : 4);
-        borderEl.setAttribute('opacity', player.eliminated ? 0.35 : 0.9);
-        borderEl.style.pointerEvents = 'none';
-        overlayGroup.appendChild(borderEl);
+        const livesFilled = player.eliminated ? 0 : Math.min(player.lives, LIFE_SEGMENTS);
+        const hasBonusLives = !player.eliminated && player.lives > LIFE_SEGMENTS;
 
-        // Badge just outside the wedge
-        const bx = cx + BADGE_R * Math.cos(midAngle);
-        const by = cy + BADGE_R * Math.sin(midAngle);
+        for (let s = 0; s < LIFE_SEGMENTS; s++) {
+            const subStart = wedgeStart + subAngle * s;
+            const subEnd = wedgeStart + subAngle * (s + 1);
+            const d = segmentPathD(cx, cy, 24, WEDGE_OUTER_R, subStart, subEnd);
 
-        const badgeGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-        badgeGroup.style.pointerEvents = 'none';
+            const seg = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            seg.setAttribute('d', d);
+            seg.style.pointerEvents = 'none';
 
-        const isActivePlayer = gameState.players[gameState.currentPlayerIdx] === player && !player.eliminated;
+            if (player.eliminated) {
+                seg.setAttribute('fill', '#2a2a2a');
+                seg.setAttribute('opacity', '0.75');
+            } else if (s < livesFilled) {
+                seg.setAttribute('fill', player.color);
+                seg.setAttribute('opacity', hasBonusLives ? '1' : '0.85');
+            } else {
+                seg.setAttribute('fill', '#1a1a1a');
+                seg.setAttribute('opacity', '0.7');
+            }
+            overlayGroup.appendChild(seg);
 
-        if (isActivePlayer) {
-            const activeRing = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-            activeRing.setAttribute('cx', bx);
-            activeRing.setAttribute('cy', by);
-            activeRing.setAttribute('r', 34);
-            activeRing.setAttribute('fill', 'none');
-            activeRing.setAttribute('stroke', '#fff');
-            activeRing.setAttribute('stroke-width', 2);
-            activeRing.setAttribute('stroke-dasharray', '4 3');
-            activeRing.classList.add('active-ring-spin');
-            badgeGroup.appendChild(activeRing);
+            // Thin divider between life segments
+            if (s > 0) {
+                const dx1 = cx + 24 * Math.cos(subStart);
+                const dy1 = cy + 24 * Math.sin(subStart);
+                const dx2 = cx + WEDGE_OUTER_R * Math.cos(subStart);
+                const dy2 = cy + WEDGE_OUTER_R * Math.sin(subStart);
+                const divider = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                divider.setAttribute('x1', dx1);
+                divider.setAttribute('y1', dy1);
+                divider.setAttribute('x2', dx2);
+                divider.setAttribute('y2', dy2);
+                divider.setAttribute('stroke', '#000');
+                divider.setAttribute('stroke-width', 1);
+                divider.setAttribute('opacity', '0.5');
+                divider.style.pointerEvents = 'none';
+                overlayGroup.appendChild(divider);
+            }
         }
 
-        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        circle.setAttribute('cx', bx);
-        circle.setAttribute('cy', by);
-        circle.setAttribute('r', 26);
-        circle.setAttribute('fill', player.eliminated ? '#333' : player.color);
-        circle.setAttribute('stroke', player.isKiller && !player.eliminated ? '#fff' : '#000');
-        circle.setAttribute('stroke-width', player.isKiller && !player.eliminated ? 3 : 1.5);
-        badgeGroup.appendChild(circle);
+        // Outer border around the whole wedge, colored by ownership
+        const outerBorder = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        outerBorder.setAttribute('d', segmentPathD(cx, cy, 24, WEDGE_OUTER_R, wedgeStart, wedgeEnd));
+        outerBorder.setAttribute('fill', 'none');
+        outerBorder.setAttribute('stroke', player.eliminated ? '#555' : player.color);
+        outerBorder.setAttribute('stroke-width', 3);
+        outerBorder.style.pointerEvents = 'none';
+        overlayGroup.appendChild(outerBorder);
 
+        // Killer status: pulsing gold/red outline around the wedge
         if (player.isKiller && !player.eliminated) {
-            const glow = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-            glow.setAttribute('cx', bx);
-            glow.setAttribute('cy', by);
-            glow.setAttribute('r', 32);
-            glow.setAttribute('fill', 'none');
-            glow.setAttribute('stroke', '#e74c3c');
-            glow.setAttribute('stroke-width', 2);
-            glow.setAttribute('opacity', 0.8);
-            glow.classList.add('killer-pulse');
-            badgeGroup.appendChild(glow);
+            const killerOutline = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            killerOutline.setAttribute('d', segmentPathD(cx, cy, 22, WEDGE_OUTER_R + 6, wedgeStart, wedgeEnd));
+            killerOutline.setAttribute('fill', 'none');
+            killerOutline.setAttribute('stroke', '#e74c3c');
+            killerOutline.setAttribute('stroke-width', 4);
+            killerOutline.classList.add('killer-pulse');
+            killerOutline.style.pointerEvents = 'none';
+            overlayGroup.appendChild(killerOutline);
         }
 
-        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        text.setAttribute('x', bx);
-        text.setAttribute('y', by);
-        text.setAttribute('text-anchor', 'middle');
-        text.setAttribute('dominant-baseline', 'central');
-        text.setAttribute('class', 'badge-text');
-        text.textContent = player.eliminated ? '\u2620' : String(Math.max(0, player.lives));
-        badgeGroup.appendChild(text);
+        // Eliminated: skull over the wedge label position
+        if (player.eliminated) {
+            const sx = cx + 245 * Math.cos(midAngle);
+            const sy = cy + 245 * Math.sin(midAngle);
+            const skull = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            skull.setAttribute('x', sx);
+            skull.setAttribute('y', sy);
+            skull.setAttribute('text-anchor', 'middle');
+            skull.setAttribute('dominant-baseline', 'central');
+            skull.setAttribute('class', 'eliminated-skull');
+            skull.textContent = '\u2620';
+            skull.style.pointerEvents = 'none';
+            overlayGroup.appendChild(skull);
+        }
 
-        overlayGroup.appendChild(badgeGroup);
+        // Active player indicator: small spinning marker at the outer tip
+        const isActivePlayer = gameState.players[gameState.currentPlayerIdx] === player && !player.eliminated;
+        if (isActivePlayer) {
+            const bx = cx + BADGE_R * Math.cos(midAngle);
+            const by = cy + BADGE_R * Math.sin(midAngle);
+            const ring = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            ring.setAttribute('cx', bx);
+            ring.setAttribute('cy', by);
+            ring.setAttribute('r', 14);
+            ring.setAttribute('fill', 'none');
+            ring.setAttribute('stroke', '#fff');
+            ring.setAttribute('stroke-width', 2);
+            ring.setAttribute('stroke-dasharray', '3 2');
+            ring.classList.add('active-ring-spin');
+            ring.style.pointerEvents = 'none';
+            overlayGroup.appendChild(ring);
+        }
     });
+
+    // Keep the number labels visible on top of all life-segment overlays
+    svg.querySelectorAll('.dartboard-label').forEach(label => svg.appendChild(label));
 }
 
 
