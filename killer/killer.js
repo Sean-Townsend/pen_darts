@@ -346,18 +346,8 @@ function updatePlayerOverlays() {
         outerBorder.style.pointerEvents = 'none';
         overlayGroup.appendChild(outerBorder);
 
-        // Killer status: pulsing gold/red outline around the wedge,
-        // plus a skull & crossbones badge next to the number label.
+        // Killer status: skull & crossbones badge next to the number label.
         if (player.isKiller && !player.eliminated) {
-            const killerOutline = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-            killerOutline.setAttribute('d', segmentPathD(cx, cy, 22, WEDGE_OUTER_R + 6, wedgeStart, wedgeEnd));
-            killerOutline.setAttribute('fill', 'none');
-            killerOutline.setAttribute('stroke', '#e74c3c');
-            killerOutline.setAttribute('stroke-width', 4);
-            killerOutline.classList.add('killer-pulse');
-            killerOutline.style.pointerEvents = 'none';
-            overlayGroup.appendChild(killerOutline);
-
             const kx = cx + BADGE_R * Math.cos(midAngle);
             const ky = cy + BADGE_R * Math.sin(midAngle);
 
@@ -366,7 +356,7 @@ function updatePlayerOverlays() {
             killerBadgeBg.setAttribute('cy', ky);
             killerBadgeBg.setAttribute('r', 22);
             killerBadgeBg.setAttribute('fill', '#000');
-            killerBadgeBg.setAttribute('stroke', '#e74c3c');
+            killerBadgeBg.setAttribute('stroke', player.color);
             killerBadgeBg.setAttribute('stroke-width', 3);
             killerBadgeBg.classList.add('killer-pulse');
             killerBadgeBg.style.pointerEvents = 'none';
@@ -378,6 +368,7 @@ function updatePlayerOverlays() {
             skull.setAttribute('text-anchor', 'middle');
             skull.setAttribute('dominant-baseline', 'central');
             skull.setAttribute('class', 'killer-skull');
+            skull.setAttribute('fill', player.color);
             skull.textContent = '\u2620';
             skull.style.pointerEvents = 'none';
             overlayGroup.appendChild(skull);

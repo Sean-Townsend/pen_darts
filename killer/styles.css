@@ -330,7 +330,6 @@ body {
 
 /* Skull & crossbones badge shown next to an active killer's number */
 .killer-skull {
-    fill: #e74c3c;
     font-size: 26px;
     pointer-events: none;
 }
