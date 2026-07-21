@@ -320,8 +320,8 @@ body {
 }
 
 .dartboard-svg {
-    width: min(96vh, 78vw);
-    height: min(96vh, 78vw);
+    width: min(96vh, 74vw);
+    height: min(96vh, 74vw);
 }
 
 /* Skull shown over an eliminated player's wedge */
@@ -371,7 +371,7 @@ body {
     flex-direction: column;
     align-items: center;
     gap: 24px;
-    width: 260px;
+    width: 300px;
     z-index: 30;
 }
 
@@ -426,6 +426,12 @@ body {
     font-size: 28px;
     cursor: pointer;
     letter-spacing: 2px;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.btn-mult:focus {
+    outline: none;
 }
 
 .btn-mult.selected {
@@ -453,6 +459,12 @@ body {
     font-weight: 700;
     letter-spacing: 3px;
     cursor: pointer;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.btn-confirm-throw:focus {
+    outline: none;
 }
 
 .btn-confirm-throw:disabled {
@@ -486,6 +498,12 @@ body {
     font-family: 'Bebas Neue', sans-serif;
     font-size: 22px;
     cursor: pointer;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.btn-miss-throw:focus {
+    outline: none;
 }
 
 @media (hover: hover) {
