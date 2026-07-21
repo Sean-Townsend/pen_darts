@@ -500,6 +500,15 @@ function highlightSelectedSegment(number) {
 function handlePlayTap(number) {
     if (gameState.animating) return;
     gameState.selectedSegment = number;
+
+    // If no multiplier has been chosen yet, default to Single.
+    if (gameState.selectedMultiplier == null) {
+        gameState.selectedMultiplier = 1;
+        document.querySelectorAll('.btn-mult').forEach(b => b.classList.remove('selected'));
+        const singleBtn = document.querySelector('.btn-mult[data-mult="1"]');
+        if (singleBtn) singleBtn.classList.add('selected');
+    }
+
     safePlaySound(playHoverSound);
     highlightSelectedSegment(number);
     updateThrowStatus();
