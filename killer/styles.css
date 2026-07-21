@@ -304,7 +304,7 @@ body {
     justify-content: center;
     position: relative;
     min-height: 0;
-    padding-top: 4vh;
+    padding-bottom: 4vh;
 }
 
 /* Board gets almost the entire screen now that lives live on the board.
@@ -333,7 +333,7 @@ body {
 
 /* Skull & crossbones badge shown next to an active killer's number */
 .killer-skull {
-    font-size: 26px;
+    font-size: 34px;
     pointer-events: none;
 }
 

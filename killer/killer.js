@@ -360,10 +360,10 @@ function updatePlayerOverlays() {
             const killerBadgeBg = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
             killerBadgeBg.setAttribute('cx', kx);
             killerBadgeBg.setAttribute('cy', ky);
-            killerBadgeBg.setAttribute('r', 22);
+            killerBadgeBg.setAttribute('r', 29);
             killerBadgeBg.setAttribute('fill', '#000');
             killerBadgeBg.setAttribute('stroke', player.color);
-            killerBadgeBg.setAttribute('stroke-width', 3);
+            killerBadgeBg.setAttribute('stroke-width', 4);
             killerBadgeBg.classList.add('killer-pulse');
             killerBadgeBg.style.pointerEvents = 'none';
             overlayGroup.appendChild(killerBadgeBg);
