@@ -346,7 +346,8 @@ function updatePlayerOverlays() {
         outerBorder.style.pointerEvents = 'none';
         overlayGroup.appendChild(outerBorder);
 
-        // Killer status: pulsing gold/red outline around the wedge
+        // Killer status: pulsing gold/red outline around the wedge,
+        // plus a skull & crossbones badge next to the number label.
         if (player.isKiller && !player.eliminated) {
             const killerOutline = document.createElementNS('http://www.w3.org/2000/svg', 'path');
             killerOutline.setAttribute('d', segmentPathD(cx, cy, 22, WEDGE_OUTER_R + 6, wedgeStart, wedgeEnd));
@@ -356,6 +357,30 @@ function updatePlayerOverlays() {
             killerOutline.classList.add('killer-pulse');
             killerOutline.style.pointerEvents = 'none';
             overlayGroup.appendChild(killerOutline);
+
+            const kx = cx + BADGE_R * Math.cos(midAngle);
+            const ky = cy + BADGE_R * Math.sin(midAngle);
+
+            const killerBadgeBg = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            killerBadgeBg.setAttribute('cx', kx);
+            killerBadgeBg.setAttribute('cy', ky);
+            killerBadgeBg.setAttribute('r', 22);
+            killerBadgeBg.setAttribute('fill', '#000');
+            killerBadgeBg.setAttribute('stroke', '#e74c3c');
+            killerBadgeBg.setAttribute('stroke-width', 3);
+            killerBadgeBg.classList.add('killer-pulse');
+            killerBadgeBg.style.pointerEvents = 'none';
+            overlayGroup.appendChild(killerBadgeBg);
+
+            const skull = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            skull.setAttribute('x', kx);
+            skull.setAttribute('y', ky);
+            skull.setAttribute('text-anchor', 'middle');
+            skull.setAttribute('dominant-baseline', 'central');
+            skull.setAttribute('class', 'killer-skull');
+            skull.textContent = '\u2620';
+            skull.style.pointerEvents = 'none';
+            overlayGroup.appendChild(skull);
         }
 
         // Eliminated: skull over the wedge label position
@@ -373,15 +398,18 @@ function updatePlayerOverlays() {
             overlayGroup.appendChild(skull);
         }
 
-        // Active player indicator: small spinning marker at the outer tip
+        // Active player indicator: small spinning marker at the outer tip.
+        // If this player is also a killer, wrap the ring around the skull
+        // badge instead of overlapping it.
         const isActivePlayer = gameState.players[gameState.currentPlayerIdx] === player && !player.eliminated;
         if (isActivePlayer) {
             const bx = cx + BADGE_R * Math.cos(midAngle);
             const by = cy + BADGE_R * Math.sin(midAngle);
+            const ringRadius = (player.isKiller && !player.eliminated) ? 30 : 14;
             const ring = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
             ring.setAttribute('cx', bx);
             ring.setAttribute('cy', by);
-            ring.setAttribute('r', 14);
+            ring.setAttribute('r', ringRadius);
             ring.setAttribute('fill', 'none');
             ring.setAttribute('stroke', '#fff');
             ring.setAttribute('stroke-width', 2);

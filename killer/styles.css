@@ -328,6 +328,13 @@ body {
     pointer-events: none;
 }
 
+/* Skull & crossbones badge shown next to an active killer's number */
+.killer-skull {
+    fill: #e74c3c;
+    font-size: 26px;
+    pointer-events: none;
+}
+
 @keyframes killerPulse {
     0%, 100% { opacity: 0.4; }
     50% { opacity: 1; }
