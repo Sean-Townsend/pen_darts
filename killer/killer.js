@@ -514,7 +514,7 @@ function handlePlayTap(number) {
     updateThrowStatus();
 }
 
-function commitThrow(number, multiplier) {
+async function commitThrow(number, multiplier) {
     gameState.animating = true;
 
     const shooter = gameState.players[gameState.currentPlayerIdx];
@@ -525,7 +525,7 @@ function commitThrow(number, multiplier) {
             // Hit a number nobody owns (or an eliminated player's old number) — treated as a miss
             safePlaySound(playMissSound);
         } else if (targetPlayer === shooter) {
-            handleSelfHit(shooter, multiplier);
+            await handleSelfHit(shooter, multiplier);
         } else {
             handleOpponentHit(shooter, targetPlayer, multiplier);
         }
@@ -536,23 +536,44 @@ function commitThrow(number, multiplier) {
     }
 }
 
-function handleSelfHit(shooter, multiplier) {
+function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function handleSelfHit(shooter, multiplier) {
     if (shooter.isKiller) {
         // Self-hit while a killer removes lives (by the multiplier hit)
-        // AND strips killer status immediately.
+        // AND strips killer status immediately. This is a demotion, not a
+        // progression, so it resolves as one single step regardless of
+        // multiplier.
         shooter.lives = Math.max(0, shooter.lives - multiplier);
         shooter.isKiller = false;
         safePlaySound(playLoseKillerSound);
         flashCenterMessage(`${shooter.name} hit their own number — KILLER STATUS LOST (${shooter.lives} lives left)`, shooter.color);
-    } else {
-        shooter.lives += multiplier;
-        if (shooter.lives >= KILLER_THRESHOLD) {
-            shooter.isKiller = true;
-            safePlaySound(playBecomeKillerSound);
-            flashCenterMessage(`${shooter.name} is now a KILLER!`, shooter.color);
-        } else {
-            safePlaySound(playHitSound);
-        }
+        return;
+    }
+
+    const newLives = shooter.lives + multiplier;
+    const crossesToKiller = newLives >= KILLER_THRESHOLD;
+
+    if (crossesToKiller) {
+        // Reaching (or jumping past) the killer threshold always resolves
+        // as a single step with a single sound, no matter the multiplier.
+        shooter.lives = newLives;
+        shooter.isKiller = true;
+        safePlaySound(playBecomeKillerSound);
+        flashCenterMessage(`${shooter.name} is now a KILLER!`, shooter.color);
+        return;
+    }
+
+    // Otherwise, step through the gain one life at a time (double = 2
+    // steps, treble = 3 steps), each with its own sound and a brief pause
+    // so the player can see the wedge visibly fill up life by life.
+    for (let i = 0; i < multiplier; i++) {
+        shooter.lives += 1;
+        safePlaySound(playHitSound);
+        updatePlayerOverlays();
+        await delay(280);
     }
 }
 
