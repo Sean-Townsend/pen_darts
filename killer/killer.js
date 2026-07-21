@@ -10,9 +10,9 @@
  * - Reaching 3+ lives makes you a KILLER
  * - As a killer, hitting an OPPONENT's number removes their lives
  *     (Single = -1, Double = -2, Treble = -3)
- * - ANY hit on your own number while you ARE a killer removes your killer
- *   status immediately (no lives lost, just demoted) — the app can't tell
- *   intent, so any self-hit as a killer costs your killer status.
+ * - ANY loss of a life while you ARE a killer — whether from hitting your
+ *   own number or being attacked by another killer — strips your killer
+ *   status immediately. You must fight back up to 3 lives to regain it.
  * - A player at 0 lives is still "in" the game but vulnerable — the next
  *   hit on their number (by a killer) eliminates them completely.
  * - Last player remaining wins.
@@ -513,9 +513,13 @@ function handleOpponentHit(shooter, target, multiplier) {
 
     if (target.lives > 0) {
         target.lives = Math.max(0, target.lives - multiplier);
+        const wasKiller = target.isKiller;
+        target.isKiller = false;
         safePlaySound(playHitSound);
         if (target.lives === 0) {
             flashCenterMessage(`${target.name} is down to 0 lives — one more hit eliminates them!`, target.color);
+        } else if (wasKiller) {
+            flashCenterMessage(`${target.name} lost a life and their KILLER status!`, target.color);
         }
     } else {
         // Already at 0 lives — this hit eliminates them.
@@ -524,9 +528,8 @@ function handleOpponentHit(shooter, target, multiplier) {
         flashCenterMessage(`${target.name} has been ELIMINATED!`, target.color);
     }
 
-    // If the target loses their killer status implicitly by being hit — no,
-    // per rules only self-hits remove killer status. Being attacked does
-    // not remove killer status, only lives.
+    // Any life loss — whether from a self-hit or being attacked — strips
+    // killer status immediately (handled above for the attacked-target case).
     checkForWinner();
 }
 
