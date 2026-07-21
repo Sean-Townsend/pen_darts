@@ -227,9 +227,8 @@ function showGameScreen() {
             <div class="turn-indicator" id="turnIndicator"></div>
             <div class="killer-layout">
                 <div class="dartboard-wrap" id="dartboardWrap"></div>
-                <div class="lives-panel" id="livesPanel"></div>
+                <div class="side-controls" id="throwControls"></div>
             </div>
-            <div class="throw-controls" id="throwControls"></div>
         </div>
     `;
 
@@ -242,7 +241,7 @@ function showGameScreen() {
         mode: 'play',
         onSegmentTap: handlePlayTap,
     });
-    renderLivesPanel();
+    updatePlayerOverlays();
     renderTurnIndicator();
     renderThrowControls();
 }
@@ -259,42 +258,118 @@ function renderTurnIndicator() {
     `;
 }
 
-function renderLivesPanel() {
-    const panel = document.getElementById('livesPanel');
-    if (!panel) return;
+// === PLAYER OVERLAYS ON THE DARTBOARD ITSELF ===
+// Instead of a separate side panel, each player's claimed number wedge shows
+// a colored border (ownership), a life-count badge, and killer/eliminated
+// status directly on the board — keeps eyes on the board during play.
 
-    panel.innerHTML = gameState.players.map((p, idx) => {
-        const statusClass = p.eliminated ? 'eliminated' : (p.isKiller ? 'killer' : '');
-        const activeClass = (idx === gameState.currentPlayerIdx && !p.eliminated) ? 'active-player' : '';
-        const livesDisplay = p.eliminated
-            ? '\u2620'
-            : '\u2764'.repeat(Math.max(0, p.lives)) + (p.lives === 0 ? ' (0)' : '');
+function updatePlayerOverlays() {
+    const svg = document.querySelector('#dartboardWrap .dartboard-svg');
+    if (!svg) return;
 
-        return `
-            <div class="player-card ${statusClass} ${activeClass}" style="--player-color:${p.color}">
-                <div class="player-card-header">
-                    <span class="player-card-dot" style="background:${p.color}"></span>
-                    <span class="player-card-name">${p.name}</span>
-                    ${p.isKiller && !p.eliminated ? '<span class="killer-badge">KILLER</span>' : ''}
-                </div>
-                <div class="player-card-number">No. ${p.number}</div>
-                <div class="player-card-lives">${livesDisplay}</div>
-            </div>
-        `;
-    }).join('');
+    let overlayGroup = svg.querySelector('#playerOverlays');
+    if (overlayGroup) overlayGroup.remove();
+
+    overlayGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    overlayGroup.setAttribute('id', 'playerOverlays');
+    svg.appendChild(overlayGroup);
+
+    const size = BOARD_SIZE;
+    const cx = size / 2;
+    const cy = size / 2;
+    const segAngle = 360 / 20;
+
+    gameState.players.forEach(player => {
+        if (player.number == null) return;
+
+        const i = DARTBOARD_ORDER.indexOf(player.number);
+        if (i === -1) return;
+
+        const startAngle = (i * segAngle - 90 - segAngle / 2) * Math.PI / 180;
+        const endAngle = ((i + 1) * segAngle - 90 - segAngle / 2) * Math.PI / 180;
+        const midAngle = (i * segAngle - 90) * Math.PI / 180;
+
+        // Ownership border around the segment
+        const d = segmentPathD(cx, cy, 20, WEDGE_OUTER_R, startAngle, endAngle);
+        const borderEl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        borderEl.setAttribute('d', d);
+        borderEl.setAttribute('fill', 'none');
+        borderEl.setAttribute('stroke', player.color);
+        borderEl.setAttribute('stroke-width', player.eliminated ? 2 : 4);
+        borderEl.setAttribute('opacity', player.eliminated ? 0.35 : 0.9);
+        borderEl.style.pointerEvents = 'none';
+        overlayGroup.appendChild(borderEl);
+
+        // Badge just outside the wedge
+        const bx = cx + BADGE_R * Math.cos(midAngle);
+        const by = cy + BADGE_R * Math.sin(midAngle);
+
+        const badgeGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        badgeGroup.style.pointerEvents = 'none';
+
+        const isActivePlayer = gameState.players[gameState.currentPlayerIdx] === player && !player.eliminated;
+
+        if (isActivePlayer) {
+            const activeRing = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            activeRing.setAttribute('cx', bx);
+            activeRing.setAttribute('cy', by);
+            activeRing.setAttribute('r', 34);
+            activeRing.setAttribute('fill', 'none');
+            activeRing.setAttribute('stroke', '#fff');
+            activeRing.setAttribute('stroke-width', 2);
+            activeRing.setAttribute('stroke-dasharray', '4 3');
+            activeRing.classList.add('active-ring-spin');
+            badgeGroup.appendChild(activeRing);
+        }
+
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', bx);
+        circle.setAttribute('cy', by);
+        circle.setAttribute('r', 26);
+        circle.setAttribute('fill', player.eliminated ? '#333' : player.color);
+        circle.setAttribute('stroke', player.isKiller && !player.eliminated ? '#fff' : '#000');
+        circle.setAttribute('stroke-width', player.isKiller && !player.eliminated ? 3 : 1.5);
+        badgeGroup.appendChild(circle);
+
+        if (player.isKiller && !player.eliminated) {
+            const glow = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            glow.setAttribute('cx', bx);
+            glow.setAttribute('cy', by);
+            glow.setAttribute('r', 32);
+            glow.setAttribute('fill', 'none');
+            glow.setAttribute('stroke', '#e74c3c');
+            glow.setAttribute('stroke-width', 2);
+            glow.setAttribute('opacity', 0.8);
+            glow.classList.add('killer-pulse');
+            badgeGroup.appendChild(glow);
+        }
+
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('x', bx);
+        text.setAttribute('y', by);
+        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('dominant-baseline', 'central');
+        text.setAttribute('class', 'badge-text');
+        text.textContent = player.eliminated ? '\u2620' : String(Math.max(0, player.lives));
+        badgeGroup.appendChild(text);
+
+        overlayGroup.appendChild(badgeGroup);
+    });
 }
+
+
 
 function renderThrowControls() {
     const controls = document.getElementById('throwControls');
     if (!controls) return;
 
     controls.innerHTML = `
-        <div class="multiplier-row">
+        <div class="multiplier-col">
             <button class="btn-mult" data-mult="1">SINGLE</button>
             <button class="btn-mult" data-mult="2">DOUBLE</button>
             <button class="btn-mult" data-mult="3">TREBLE</button>
         </div>
-        <div class="throw-status" id="throwStatus">Select multiplier, then tap a number</div>
+        <div class="throw-status" id="throwStatus">Tap a number</div>
         <button class="btn-miss-throw" id="btnMissThrow">MISS</button>
     `;
 
@@ -346,7 +421,7 @@ function handlePlayTap(number) {
             handleOpponentHit(shooter, targetPlayer, multiplier);
         }
     } finally {
-        renderLivesPanel();
+        updatePlayerOverlays();
         advanceDart();
     }
 }
@@ -446,7 +521,7 @@ function advanceToNextPlayer() {
     }
     gameState.currentPlayerIdx = next;
     safePlaySound(playTurnChangeSound);
-    renderLivesPanel();
+    updatePlayerOverlays();
 }
 
 // === SCREEN: WIN ===
@@ -499,9 +574,12 @@ function launchConfetti() {
 // === DARTBOARD RENDERING (shared by claim + play modes) ===
 
 const DARTBOARD_ORDER = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5];
+const BOARD_SIZE = 600;
+const WEDGE_OUTER_R = 270;
+const BADGE_R = 315; // where player badges sit, just outside the wedge labels
 
 function renderDartboard(target, { onSegmentTap }) {
-    const size = 600;
+    const size = BOARD_SIZE;
     const cx = size / 2;
     const cy = size / 2;
     const segAngle = 360 / 20;
@@ -515,11 +593,12 @@ function renderDartboard(target, { onSegmentTap }) {
         const baseColor = isBlack ? '#1a1a1a' : '#f5e6a3';
         const labelColor = isBlack ? '#f5e6a3' : '#1a1a1a';
 
-        svg += segmentPath(cx, cy, 20, 270, startAngle, endAngle, baseColor, num);
+        const d = segmentPathD(cx, cy, 20, WEDGE_OUTER_R, startAngle, endAngle);
+        svg += `<path data-num="${num}" class="dartboard-segment" d="${d}" fill="${baseColor}"/>`;
 
         const labelAngle = (i * segAngle - 90) * Math.PI / 180;
-        const lx = cx + 250 * Math.cos(labelAngle);
-        const ly = cy + 250 * Math.sin(labelAngle);
+        const lx = cx + 245 * Math.cos(labelAngle);
+        const ly = cy + 245 * Math.sin(labelAngle);
         svg += `<text x="${lx}" y="${ly}" class="dartboard-label" fill="${labelColor}" text-anchor="middle" dominant-baseline="middle">${num}</text>`;
     });
 
@@ -537,7 +616,7 @@ function renderDartboard(target, { onSegmentTap }) {
     });
 }
 
-function segmentPath(cx, cy, r1, r2, startAngle, endAngle, fill, num) {
+function segmentPathD(cx, cy, r1, r2, startAngle, endAngle) {
     const x1 = cx + r1 * Math.cos(startAngle);
     const y1 = cy + r1 * Math.sin(startAngle);
     const x2 = cx + r2 * Math.cos(startAngle);
@@ -547,5 +626,5 @@ function segmentPath(cx, cy, r1, r2, startAngle, endAngle, fill, num) {
     const x4 = cx + r1 * Math.cos(endAngle);
     const y4 = cy + r1 * Math.sin(endAngle);
 
-    return `<path data-num="${num}" class="dartboard-segment" d="M${x1},${y1} L${x2},${y2} A${r2},${r2} 0 0,1 ${x3},${y3} L${x4},${y4} A${r1},${r1} 0 0,0 ${x1},${y1} Z" fill="${fill}"/>`;
+    return `M${x1},${y1} L${x2},${y2} A${r2},${r2} 0 0,1 ${x3},${y3} L${x4},${y4} A${r1},${r1} 0 0,0 ${x1},${y1} Z`;
 }
