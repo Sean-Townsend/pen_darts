@@ -495,10 +495,12 @@ function handlePlayTap(number) {
 
 function handleSelfHit(shooter, multiplier) {
     if (shooter.isKiller) {
-        // Any self-hit while a killer strips killer status immediately.
+        // Self-hit while a killer removes lives (by the multiplier hit)
+        // AND strips killer status immediately.
+        shooter.lives = Math.max(0, shooter.lives - multiplier);
         shooter.isKiller = false;
         safePlaySound(playLoseKillerSound);
-        flashCenterMessage(`${shooter.name} hit their own number — KILLER STATUS LOST`, shooter.color);
+        flashCenterMessage(`${shooter.name} hit their own number — KILLER STATUS LOST (${shooter.lives} lives left)`, shooter.color);
     } else {
         shooter.lives += multiplier;
         if (shooter.lives >= KILLER_THRESHOLD) {
@@ -641,9 +643,11 @@ function launchConfetti() {
 // === DARTBOARD RENDERING (shared by claim + play modes) ===
 
 const DARTBOARD_ORDER = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5];
-const BOARD_SIZE = 600;
+// The viewBox is larger than the wedge radius so badges can sit fully
+// outside the dartboard without being clipped by the SVG's edge.
+const BOARD_SIZE = 700;
 const WEDGE_OUTER_R = 270;
-const BADGE_R = 315; // where player badges sit, just outside the wedge labels
+const BADGE_R = 310; // where player killer/active badges sit, just outside the wedge
 
 function renderDartboard(target, { onSegmentTap }) {
     const size = BOARD_SIZE;
