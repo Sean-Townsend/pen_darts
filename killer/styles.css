@@ -201,10 +201,10 @@ body {
 }
 
 .dartboard-label {
-    fill: #f5e6a3;
     font-family: 'Bebas Neue', sans-serif;
     font-size: 24px;
     pointer-events: none;
+    font-weight: 700;
 }
 
 /* === ORDER LIST === */

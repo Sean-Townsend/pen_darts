@@ -513,13 +513,14 @@ function renderDartboard(target, { onSegmentTap }) {
         const endAngle = ((i + 1) * segAngle - 90 - segAngle / 2) * Math.PI / 180;
         const isBlack = i % 2 === 0;
         const baseColor = isBlack ? '#1a1a1a' : '#f5e6a3';
+        const labelColor = isBlack ? '#f5e6a3' : '#1a1a1a';
 
         svg += segmentPath(cx, cy, 20, 270, startAngle, endAngle, baseColor, num);
 
         const labelAngle = (i * segAngle - 90) * Math.PI / 180;
         const lx = cx + 250 * Math.cos(labelAngle);
         const ly = cy + 250 * Math.sin(labelAngle);
-        svg += `<text x="${lx}" y="${ly}" class="dartboard-label" text-anchor="middle" dominant-baseline="middle">${num}</text>`;
+        svg += `<text x="${lx}" y="${ly}" class="dartboard-label" fill="${labelColor}" text-anchor="middle" dominant-baseline="middle">${num}</text>`;
     });
 
     svg += `<circle cx="${cx}" cy="${cy}" r="20" fill="#1a1a1a" stroke="#888" stroke-width="1"/>`;
