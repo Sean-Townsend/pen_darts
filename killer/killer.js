@@ -295,10 +295,17 @@ function updatePlayerOverlays() {
         const livesFilled = player.eliminated ? 0 : Math.min(player.lives, LIFE_SEGMENTS);
         const hasBonusLives = !player.eliminated && player.lives > LIFE_SEGMENTS;
 
+        // Radial bands from inner (center) to outer edge of the wedge.
+        // Band 0 = innermost (first life), band 2 = outermost (third life,
+        // reaching this band = killer / full wedge lit up).
+        const innerR = 24;
+        const outerR = WEDGE_OUTER_R;
+        const bandDepth = (outerR - innerR) / LIFE_SEGMENTS;
+
         for (let s = 0; s < LIFE_SEGMENTS; s++) {
-            const subStart = wedgeStart + subAngle * s;
-            const subEnd = wedgeStart + subAngle * (s + 1);
-            const d = segmentPathD(cx, cy, 24, WEDGE_OUTER_R, subStart, subEnd);
+            const r1 = innerR + bandDepth * s;
+            const r2 = innerR + bandDepth * (s + 1);
+            const d = segmentPathD(cx, cy, r1, r2, wedgeStart, wedgeEnd);
 
             const seg = document.createElementNS('http://www.w3.org/2000/svg', 'path');
             seg.setAttribute('d', d);
@@ -316,17 +323,12 @@ function updatePlayerOverlays() {
             }
             overlayGroup.appendChild(seg);
 
-            // Thin divider between life segments
+            // Thin arc divider between radial bands
             if (s > 0) {
-                const dx1 = cx + 24 * Math.cos(subStart);
-                const dy1 = cy + 24 * Math.sin(subStart);
-                const dx2 = cx + WEDGE_OUTER_R * Math.cos(subStart);
-                const dy2 = cy + WEDGE_OUTER_R * Math.sin(subStart);
-                const divider = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                divider.setAttribute('x1', dx1);
-                divider.setAttribute('y1', dy1);
-                divider.setAttribute('x2', dx2);
-                divider.setAttribute('y2', dy2);
+                const arcD = arcPathD(cx, cy, r1, wedgeStart, wedgeEnd);
+                const divider = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                divider.setAttribute('d', arcD);
+                divider.setAttribute('fill', 'none');
                 divider.setAttribute('stroke', '#000');
                 divider.setAttribute('stroke-width', 1);
                 divider.setAttribute('opacity', '0.5');
@@ -651,6 +653,14 @@ function renderDartboard(target, { onSegmentTap }) {
             el.addEventListener('click', () => onSegmentTap(num));
         }
     });
+}
+
+function arcPathD(cx, cy, r, startAngle, endAngle) {
+    const x1 = cx + r * Math.cos(startAngle);
+    const y1 = cy + r * Math.sin(startAngle);
+    const x2 = cx + r * Math.cos(endAngle);
+    const y2 = cy + r * Math.sin(endAngle);
+    return `M${x1},${y1} A${r},${r} 0 0,1 ${x2},${y2}`;
 }
 
 function segmentPathD(cx, cy, r1, r2, startAngle, endAngle) {
