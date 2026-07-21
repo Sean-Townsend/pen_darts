@@ -559,9 +559,12 @@ async function handleSelfHit(shooter, multiplier) {
     const crossesToKiller = newLives >= KILLER_THRESHOLD;
 
     if (crossesToKiller) {
-        // Reaching (or jumping past) the killer threshold always resolves
-        // as a single step with a single sound, no matter the multiplier.
-        shooter.lives = newLives;
+        // Reaching (or overshooting past) the killer threshold always
+        // resolves as a single step with a single sound, no matter the
+        // multiplier. Lives are capped at the threshold — killers always
+        // have exactly 3 lives, never more, so a later hit's effect is
+        // always clearly visible.
+        shooter.lives = KILLER_THRESHOLD;
         shooter.isKiller = true;
         safePlaySound(playBecomeKillerSound);
         flashCenterMessage(`${shooter.name} is now a KILLER!`, shooter.color);
@@ -572,7 +575,7 @@ async function handleSelfHit(shooter, multiplier) {
     // steps, treble = 3 steps), each with its own sound and a brief pause
     // so the player can see the wedge visibly fill up life by life.
     for (let i = 0; i < multiplier; i++) {
-        shooter.lives += 1;
+        shooter.lives = Math.min(KILLER_THRESHOLD, shooter.lives + 1);
         safePlaySound(playHitSound);
         updatePlayerOverlays();
         await delay(280);
