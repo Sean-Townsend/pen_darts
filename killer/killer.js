@@ -224,10 +224,12 @@ function showGameScreen() {
     container().innerHTML = `
         <div class="screen-game">
             <button class="btn-quit" id="btnQuit">Quit</button>
-            <div class="turn-indicator" id="turnIndicator"></div>
             <div class="killer-layout">
                 <div class="dartboard-wrap" id="dartboardWrap"></div>
-                <div class="side-controls" id="throwControls"></div>
+                <div class="side-controls">
+                    <div class="turn-indicator" id="turnIndicator"></div>
+                    <div id="throwControls"></div>
+                </div>
             </div>
         </div>
     `;
