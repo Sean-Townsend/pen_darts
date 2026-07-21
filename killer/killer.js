@@ -44,6 +44,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+
+
 // === SCREEN: PLAYER COUNT ===
 
 function showPlayerCountScreen() {
@@ -228,7 +230,7 @@ function showGameScreen() {
                 <div class="dartboard-wrap" id="dartboardWrap"></div>
                 <div class="side-controls">
                     <div class="turn-indicator" id="turnIndicator"></div>
-                    <div id="throwControls"></div>
+                    <div class="throw-controls-wrap" id="throwControls"></div>
                 </div>
             </div>
         </div>

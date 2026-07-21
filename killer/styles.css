@@ -375,6 +375,17 @@ body {
     z-index: 30;
 }
 
+/* Explicit width so the 100%-width buttons inside always resolve to a
+   stable size instead of an ambiguous shrink-to-fit width that could
+   change (and shrink) whenever this container is rebuilt/re-rendered. */
+.throw-controls-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+}
+
 .multiplier-col {
     display: flex;
     flex-direction: column;
