@@ -719,7 +719,7 @@ const DARTBOARD_ORDER = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11
 // outside the dartboard without being clipped by the SVG's edge.
 const BOARD_SIZE = 700;
 const WEDGE_OUTER_R = 270;
-const BADGE_R = 310; // where player killer/active badges sit, just outside the wedge
+const BADGE_R = 292; // where player killer/active badges sit, just outside the wedge
 
 function renderDartboard(target, { onSegmentTap }) {
     const size = BOARD_SIZE;
