@@ -48,6 +48,26 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+let _appRevealed = false;
+function revealApp() {
+    if (_appRevealed) return;
+    _appRevealed = true;
+
+    const cover = document.getElementById('loadingCover');
+    if (!cover) return;
+
+    // Belt-and-braces: double rAF (waits for layout/paint to settle) plus
+    // a small fixed delay, since timing alone isn't always enough on
+    // slower devices or iOS home-screen web app launches.
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            setTimeout(() => {
+                cover.classList.add('hide');
+            }, 80);
+        });
+    });
+}
+
 
 
 // === SCREEN: PLAYER COUNT ===
@@ -65,21 +85,12 @@ function showPlayerCountScreen() {
         </div>
     `;
 
-    // Keep the screen invisible until the browser has fully settled layout
-    // (fonts applied, flex centering resolved). Avoids a brief flash where
-    // the panel appears in the wrong spot before jumping to center, which
-    // can happen on some mobile browsers even after fonts.ready resolves.
-    // Uses both a double rAF AND a small fixed delay as a belt-and-braces
-    // approach, since animation-frame timing alone isn't always enough on
-    // slower devices or iOS home-screen web app launches.
-    const screenEl = document.getElementById('playerCountScreen');
-    requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-            setTimeout(() => {
-                if (screenEl) screenEl.classList.add('ready');
-            }, 80);
-        });
-    });
+    // Fade away the solid black loading cover (present since first paint)
+    // once layout has fully settled (fonts applied, flex centering
+    // resolved). This hides any brief mispositioning/flash entirely,
+    // rather than relying on the screen's own opacity, which is more
+    // robust across devices/timing than trying to hide the content itself.
+    revealApp();
 
     const btnContainer = document.getElementById('playerCountButtons');
     for (let i = 2; i <= MAX_PLAYERS; i++) {

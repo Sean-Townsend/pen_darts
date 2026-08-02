@@ -10,11 +10,16 @@
     <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png?v=1">
     <link rel="manifest" href="manifest.json?v=1">
     <title>PenBar - Killer Darts</title>
-    <link rel="stylesheet" href="styles.css?v=25">
+    <link rel="stylesheet" href="styles.css?v=26">
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;700&family=Permanent+Marker&display=swap" as="style">
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;700&family=Permanent+Marker&display=swap" rel="stylesheet">
 </head>
 <body>
+    <!-- Solid black cover shown immediately on load, before any layout has
+         a chance to settle. Faded out once the app is confirmed ready, so
+         the player never sees any brief mispositioned/flashing content. -->
+    <div id="loadingCover"></div>
+
     <div class="game-frame">
         <div class="game-container" id="gameContainer">
             <!-- All screens are rendered dynamically by killer.js -->
@@ -22,6 +27,6 @@
     </div>
 
     <script src="audio.js?v=6"></script>
-    <script src="killer.js?v=30"></script>
+    <script src="killer.js?v=31"></script>
 </body>
 </html>
