@@ -653,25 +653,38 @@ function checkForWinner() {
 }
 
 function flashCenterMessage(msg, color) {
-    let el = document.getElementById('centerMessage');
-    if (!el) {
+    // Rendered as an HTML foreignObject INSIDE the dartboard SVG itself,
+    // anchored to the SVG's own coordinate system (same space as the
+    // wedges). This guarantees it's always exactly centered on the board
+    // regardless of any CSS layout/viewport-unit quirks on any browser,
+    // since it moves and scales with the SVG as a single unit rather than
+    // being positioned independently on top of it.
+    const svg = document.querySelector('#dartboardWrap .dartboard-svg');
+    if (!svg) return;
+
+    let fo = svg.querySelector('#centerMessageFO');
+    let el;
+    if (!fo) {
+        fo = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
+        fo.setAttribute('id', 'centerMessageFO');
+        fo.setAttribute('x', 0);
+        fo.setAttribute('y', 0);
+        fo.setAttribute('width', BOARD_SIZE);
+        fo.setAttribute('height', BOARD_SIZE);
+        fo.style.pointerEvents = 'none';
+        fo.style.overflow = 'visible';
+
+        const centerWrap = document.createElement('div');
+        centerWrap.classList.add('center-message-wrap');
+
         el = document.createElement('div');
         el.id = 'centerMessage';
         el.classList.add('center-message');
-        document.body.appendChild(el);
-    }
-
-    // Position using the dartboard SVG's actual on-screen bounding box
-    // rather than relying on CSS ancestor positioning contexts (percentage
-    // centering can behave inconsistently across browsers/devices,
-    // especially with viewport units and mobile Safari's dynamic viewport).
-    // This computes the real geometry directly, so it's always accurate.
-    const svg = document.querySelector('#dartboardWrap .dartboard-svg');
-    if (svg) {
-        const rect = svg.getBoundingClientRect();
-        el.style.position = 'fixed';
-        el.style.left = (rect.left + rect.width / 2) + 'px';
-        el.style.top = (rect.top + rect.height / 2) + 'px';
+        centerWrap.appendChild(el);
+        fo.appendChild(centerWrap);
+        svg.appendChild(fo);
+    } else {
+        el = fo.querySelector('#centerMessage');
     }
 
     el.textContent = msg;

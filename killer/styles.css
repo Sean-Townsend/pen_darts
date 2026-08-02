@@ -529,13 +529,20 @@ body {
 }
 
 /* === CENTER FLASH MESSAGE ===
-   Position (left/top) is set inline via JS to the dartboard's real
-   on-screen center, computed with getBoundingClientRect() for accuracy
-   across all browsers/devices. CSS only handles the visual styling and
-   the centering transform around that point. */
+   Rendered inside a <foreignObject> within the dartboard SVG itself, so
+   it's positioned using the SVG's own coordinate system and always ends
+   up exactly centered on the board — no CSS layout or viewport-unit
+   quirks possible since it moves/scales as part of the SVG as a whole. */
+.center-message-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
 .center-message {
-    position: fixed;
-    transform: translate(-50%, -50%) scale(0.85);
+    transform: scale(0.85);
     background: rgba(0,0,0,0.92);
     border: 3px solid #f5e6a3;
     border-radius: 14px;
@@ -543,16 +550,16 @@ body {
     font-family: 'Bebas Neue', sans-serif;
     font-size: 28px;
     text-align: center;
-    max-width: 80%;
+    max-width: 480px;
+    box-sizing: border-box;
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.3s, transform 0.3s;
-    z-index: 60;
 }
 
 .center-message.show {
     opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
+    transform: scale(1);
 }
 
 /* === QUIT BUTTON === */
