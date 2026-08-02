@@ -420,7 +420,7 @@ function playCriticalSound() {
     const now = ctx.currentTime;
 
     // Fast rising alarm beeps — like a siren winding up, quickening pace
-    const beepTimes = [0, 0.15, 0.28, 0.4, 0.52, 0.65, 0.78];
+    const beepTimes = [0, 0.2, 0.38, 0.55, 0.75, 1.0, 1.25, 1.5];
     beepTimes.forEach((t, i) => {
         const beep = ctx.createOscillator();
         beep.type = 'square';
@@ -446,11 +446,12 @@ function playCriticalSound() {
 
     // Real heartbeat rhythm: "lub-DUB" pairs (a softer first beat quickly
     // followed by a sharper second beat), then a gap, then repeats —
-    // racing/quickening on each cycle to build panic.
+    // slowed right down to a believable racing-but-audible pace (roughly
+    // 80-90bpm) rather than a rapid flutter.
     const heartbeatCycles = [
-        { lub: 0, dub: 0.09 },
-        { lub: 0.38, dub: 0.46 },
-        { lub: 0.72, dub: 0.79 },
+        { lub: 0, dub: 0.14 },
+        { lub: 0.7, dub: 0.84 },
+        { lub: 1.4, dub: 1.54 },
     ];
 
     heartbeatCycles.forEach(({ lub, dub }) => {

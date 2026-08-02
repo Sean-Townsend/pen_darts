@@ -14,6 +14,9 @@ button {
 
 html, body {
     height: 100%;
+    height: 100dvh; /* dynamic viewport height - avoids iOS reporting a
+                       stale/incorrect height right at launch before the
+                       real viewport (status bar, safe areas) settles */
     overflow: hidden;
     touch-action: manipulation;
 }
