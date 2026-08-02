@@ -688,6 +688,7 @@ function flashCenterMessage(msg, color) {
     }
 
     el.textContent = msg;
+    el.style.color = '#ffffff';
     el.style.borderColor = color || '#f5e6a3';
     el.classList.add('show');
     clearTimeout(el._hideTimeout);
