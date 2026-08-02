@@ -194,8 +194,10 @@ body {
     transform: translateX(-50%) scale(1);
 }
 
-/* === DARTBOARD === */
-.dartboard-wrap {
+/* === DARTBOARD (claim-numbers / setup screen) ===
+   Scoped to .screen-setup specifically so it can't collide with the
+   differently-laid-out dartboard-wrap used on the main play screen. */
+.screen-setup .dartboard-wrap {
     flex: 1;
     display: flex;
     align-items: center;
@@ -204,7 +206,7 @@ body {
     max-height: 100%;
 }
 
-.dartboard-svg {
+.screen-setup .dartboard-svg {
     width: min(70vh, 70vw);
     height: min(70vh, 70vw);
 }
@@ -336,7 +338,7 @@ body {
     padding-right: calc(300px + 4vw);
 }
 
-.dartboard-wrap {
+.killer-layout .dartboard-wrap {
     position: relative;
     display: flex;
     align-items: center;
@@ -345,7 +347,7 @@ body {
     height: 100%;
 }
 
-.dartboard-svg {
+.killer-layout .dartboard-svg {
     width: min(90vh, 68vw);
     height: min(90vh, 68vw);
 }
