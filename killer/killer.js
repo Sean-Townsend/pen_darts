@@ -658,7 +658,11 @@ function flashCenterMessage(msg, color) {
         el = document.createElement('div');
         el.id = 'centerMessage';
         el.classList.add('center-message');
-        document.querySelector('.screen-game').appendChild(el);
+        // Append inside the dartboard wrap (not the whole screen) so it
+        // centers over the actual board, which is offset from screen
+        // center to make room for the sidebar.
+        const wrap = document.getElementById('dartboardWrap');
+        (wrap || document.querySelector('.screen-game')).appendChild(el);
     }
     el.textContent = msg;
     el.style.borderColor = color || '#f5e6a3';
