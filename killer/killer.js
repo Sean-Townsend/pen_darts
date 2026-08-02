@@ -398,25 +398,39 @@ function updatePlayerOverlays() {
             overlayGroup.appendChild(skull);
         }
 
-        // Active player indicator: small spinning marker at the outer tip.
-        // If this player is also a killer, wrap the ring around the skull
-        // badge instead of overlapping it.
+        // Active player indicator: a bold pulsing arrow sitting further out
+        // than the killer badge, pointing inward at the current thrower's
+        // wedge. Far more obvious than a thin spinning ring, and never
+        // collides with the killer skull badge since it sits beyond it.
         const isActivePlayer = gameState.players[gameState.currentPlayerIdx] === player && !player.eliminated;
         if (isActivePlayer) {
-            const bx = cx + BADGE_R * Math.cos(midAngle);
-            const by = cy + BADGE_R * Math.sin(midAngle);
-            const ringRadius = (player.isKiller && !player.eliminated) ? 30 : 14;
-            const ring = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-            ring.setAttribute('cx', bx);
-            ring.setAttribute('cy', by);
-            ring.setAttribute('r', ringRadius);
-            ring.setAttribute('fill', 'none');
-            ring.setAttribute('stroke', '#fff');
-            ring.setAttribute('stroke-width', 2);
-            ring.setAttribute('stroke-dasharray', '3 2');
-            ring.classList.add('active-ring-spin');
-            ring.style.pointerEvents = 'none';
-            overlayGroup.appendChild(ring);
+            const arrowR = ARROW_R;
+            const ax = cx + arrowR * Math.cos(midAngle);
+            const ay = cy + arrowR * Math.sin(midAngle);
+
+            // Build an arrow (triangle) pointing toward the board center,
+            // rotated to align with this wedge's angle.
+            const arrowLength = 34;
+            const arrowWidth = 26;
+            const pointAngle = midAngle + Math.PI; // pointing inward
+            const tipX = ax + (arrowLength / 2) * Math.cos(pointAngle);
+            const tipY = ay + (arrowLength / 2) * Math.sin(pointAngle);
+            const baseCenterX = ax - (arrowLength / 2) * Math.cos(pointAngle);
+            const baseCenterY = ay - (arrowLength / 2) * Math.sin(pointAngle);
+            const perpAngle = pointAngle + Math.PI / 2;
+            const base1X = baseCenterX + (arrowWidth / 2) * Math.cos(perpAngle);
+            const base1Y = baseCenterY + (arrowWidth / 2) * Math.sin(perpAngle);
+            const base2X = baseCenterX - (arrowWidth / 2) * Math.cos(perpAngle);
+            const base2Y = baseCenterY - (arrowWidth / 2) * Math.sin(perpAngle);
+
+            const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+            arrow.setAttribute('points', `${tipX},${tipY} ${base1X},${base1Y} ${base2X},${base2Y}`);
+            arrow.setAttribute('fill', '#fff');
+            arrow.setAttribute('stroke', player.color);
+            arrow.setAttribute('stroke-width', 3);
+            arrow.classList.add('active-arrow-pulse');
+            arrow.style.pointerEvents = 'none';
+            overlayGroup.appendChild(arrow);
         }
     });
 
@@ -736,6 +750,7 @@ const DARTBOARD_ORDER = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11
 const BOARD_SIZE = 700;
 const WEDGE_OUTER_R = 270;
 const BADGE_R = 292; // where player killer/active badges sit, just outside the wedge
+const ARROW_R = 330; // where the active-player arrow sits, beyond the killer badge
 
 function renderDartboard(target, { onSegmentTap }) {
     const size = BOARD_SIZE;
