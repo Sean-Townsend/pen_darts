@@ -217,7 +217,7 @@ body {
 
 .dartboard-label {
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 24px;
+    font-size: 34px;
     pointer-events: none;
     font-weight: 700;
 }
@@ -451,7 +451,7 @@ body {
     background: rgba(0,0,0,0.7);
     color: #f5e6a3;
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 28px;
+    font-size: 38px;
     cursor: pointer;
     letter-spacing: 2px;
     outline: none;
@@ -468,7 +468,7 @@ body {
 }
 
 .throw-status {
-    font-size: 24px;
+    font-size: 30px;
     color: #ccc;
     text-align: center;
     font-family: 'Bebas Neue', sans-serif;
@@ -483,7 +483,7 @@ body {
     background: #2ecc71;
     color: #08301a;
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 30px;
+    font-size: 40px;
     font-weight: 700;
     letter-spacing: 3px;
     cursor: pointer;
@@ -524,7 +524,7 @@ body {
     background: rgba(120, 30, 30, 0.35);
     color: #e8b8b8;
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 30px;
+    font-size: 40px;
     font-weight: 700;
     letter-spacing: 3px;
     cursor: pointer;
