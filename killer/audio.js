@@ -420,7 +420,7 @@ function playCriticalSound() {
     const now = ctx.currentTime;
 
     // Fast rising alarm beeps — like a siren winding up, quickening pace
-    const beepTimes = [0, 0.15, 0.28, 0.4, 0.5, 0.62, 0.76, 0.92, 1.1];
+    const beepTimes = [0, 0.15, 0.28, 0.4, 0.52, 0.65, 0.78];
     beepTimes.forEach((t, i) => {
         const beep = ctx.createOscillator();
         beep.type = 'square';
@@ -444,22 +444,44 @@ function playCriticalSound() {
         beep.stop(now + t + 0.1);
     });
 
-    // Heartbeat-style thumps underneath, racing/quickening to give it a
-    // pulse-racing urgency — extended to 4 beats so it reads more clearly
-    // as a heartbeat rather than a single double-thump
-    [0, 0.42, 0.8, 1.14].forEach(t => {
-        const thump = ctx.createOscillator();
-        thump.type = 'sine';
-        thump.frequency.setValueAtTime(120, now + t);
-        thump.frequency.exponentialRampToValueAtTime(50, now + t + 0.12);
+    // Real heartbeat rhythm: "lub-DUB" pairs (a softer first beat quickly
+    // followed by a sharper second beat), then a gap, then repeats —
+    // racing/quickening on each cycle to build panic.
+    const heartbeatCycles = [
+        { lub: 0, dub: 0.09 },
+        { lub: 0.38, dub: 0.46 },
+        { lub: 0.72, dub: 0.79 },
+    ];
 
-        const thumpGain = ctx.createGain();
-        thumpGain.gain.setValueAtTime(0.25, now + t);
-        thumpGain.gain.exponentialRampToValueAtTime(0.001, now + t + 0.15);
+    heartbeatCycles.forEach(({ lub, dub }) => {
+        // "lub" - softer, slightly lower
+        const lubOsc = ctx.createOscillator();
+        lubOsc.type = 'sine';
+        lubOsc.frequency.setValueAtTime(90, now + lub);
+        lubOsc.frequency.exponentialRampToValueAtTime(45, now + lub + 0.08);
 
-        thump.connect(thumpGain);
-        thumpGain.connect(ctx.destination);
-        thump.start(now + t);
-        thump.stop(now + t + 0.18);
+        const lubGain = ctx.createGain();
+        lubGain.gain.setValueAtTime(0.18, now + lub);
+        lubGain.gain.exponentialRampToValueAtTime(0.001, now + lub + 0.1);
+
+        lubOsc.connect(lubGain);
+        lubGain.connect(ctx.destination);
+        lubOsc.start(now + lub);
+        lubOsc.stop(now + lub + 0.12);
+
+        // "DUB" - sharper, punchier
+        const dubOsc = ctx.createOscillator();
+        dubOsc.type = 'sine';
+        dubOsc.frequency.setValueAtTime(110, now + dub);
+        dubOsc.frequency.exponentialRampToValueAtTime(40, now + dub + 0.1);
+
+        const dubGain = ctx.createGain();
+        dubGain.gain.setValueAtTime(0.28, now + dub);
+        dubGain.gain.exponentialRampToValueAtTime(0.001, now + dub + 0.13);
+
+        dubOsc.connect(dubGain);
+        dubGain.connect(ctx.destination);
+        dubOsc.start(now + dub);
+        dubOsc.stop(now + dub + 0.15);
     });
 }

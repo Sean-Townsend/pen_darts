@@ -69,10 +69,15 @@ function showPlayerCountScreen() {
     // (fonts applied, flex centering resolved). Avoids a brief flash where
     // the panel appears in the wrong spot before jumping to center, which
     // can happen on some mobile browsers even after fonts.ready resolves.
+    // Uses both a double rAF AND a small fixed delay as a belt-and-braces
+    // approach, since animation-frame timing alone isn't always enough on
+    // slower devices or iOS home-screen web app launches.
     const screenEl = document.getElementById('playerCountScreen');
     requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-            if (screenEl) screenEl.classList.add('ready');
+            setTimeout(() => {
+                if (screenEl) screenEl.classList.add('ready');
+            }, 80);
         });
     });
 
