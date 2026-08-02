@@ -500,14 +500,16 @@ body {
 
 .btn-miss-throw {
     width: 100%;
-    padding: 18px 8px;
+    padding: 22px 8px;
     margin-top: 20px;
-    border-radius: 26px;
-    border: 2px solid #888;
-    background: rgba(0,0,0,0.7);
-    color: #ccc;
+    border-radius: 16px;
+    border: 3px solid #b04a4a;
+    background: rgba(120, 30, 30, 0.35);
+    color: #e8b8b8;
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 22px;
+    font-size: 30px;
+    font-weight: 700;
+    letter-spacing: 3px;
     cursor: pointer;
     outline: none;
     box-sizing: border-box;
@@ -519,8 +521,8 @@ body {
 
 @media (hover: hover) {
     .btn-miss-throw:hover {
-        background: #888;
-        color: #1a0a1a;
+        background: rgba(120, 30, 30, 0.6);
+        color: #fff;
     }
 }
 
