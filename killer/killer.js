@@ -439,6 +439,12 @@ function updatePlayerOverlays() {
 
     // Keep the number labels visible on top of all life-segment overlays
     svg.querySelectorAll('.dartboard-label').forEach(label => svg.appendChild(label));
+
+    // If a flash message is currently showing, keep it above everything
+    // (including the labels re-appended just above) since overlays get
+    // rebuilt on every throw and would otherwise cover the message.
+    const msgGroup = svg.querySelector('#centerMessageGroup');
+    if (msgGroup) svg.appendChild(msgGroup);
 }
 
 
@@ -652,47 +658,106 @@ function checkForWinner() {
     }
 }
 
+// === CENTER FLASH MESSAGE (pure SVG, no foreignObject) ===
+// foreignObject (embedding HTML inside SVG) has long-standing WebKit/Safari
+// bugs around text color inheritance and stacking order, which is exactly
+// what caused the message to render with black text and wrong z-order on
+// iPad while working fine on desktop. Native SVG <rect>/<text> elements
+// render identically and predictably across every browser, so we build
+// the message entirely out of those instead.
+
+let _measureCtx = null;
+function measureSvgTextWidth(text, fontSize) {
+    if (!_measureCtx) {
+        _measureCtx = document.createElement('canvas').getContext('2d');
+    }
+    _measureCtx.font = `${fontSize}px 'Bebas Neue', sans-serif`;
+    return _measureCtx.measureText(text).width;
+}
+
+function wrapSvgText(text, fontSize, maxWidth) {
+    const words = text.split(' ');
+    const lines = [];
+    let current = '';
+    words.forEach(word => {
+        const test = current ? `${current} ${word}` : word;
+        if (!current || measureSvgTextWidth(test, fontSize) <= maxWidth) {
+            current = test;
+        } else {
+            lines.push(current);
+            current = word;
+        }
+    });
+    if (current) lines.push(current);
+    return lines;
+}
+
 function flashCenterMessage(msg, color) {
-    // Rendered as an HTML foreignObject INSIDE the dartboard SVG itself,
-    // anchored to the SVG's own coordinate system (same space as the
-    // wedges). This guarantees it's always exactly centered on the board
-    // regardless of any CSS layout/viewport-unit quirks on any browser,
-    // since it moves and scales with the SVG as a single unit rather than
-    // being positioned independently on top of it.
     const svg = document.querySelector('#dartboardWrap .dartboard-svg');
     if (!svg) return;
 
-    let fo = svg.querySelector('#centerMessageFO');
-    let el;
-    if (!fo) {
-        fo = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
-        fo.setAttribute('id', 'centerMessageFO');
-        fo.setAttribute('x', 0);
-        fo.setAttribute('y', 0);
-        fo.setAttribute('width', BOARD_SIZE);
-        fo.setAttribute('height', BOARD_SIZE);
-        fo.style.pointerEvents = 'none';
-        fo.style.overflow = 'visible';
+    const existing = svg.querySelector('#centerMessageGroup');
+    if (existing) existing.remove();
 
-        const centerWrap = document.createElement('div');
-        centerWrap.classList.add('center-message-wrap');
+    const fontSize = 30;
+    const lineHeight = 38;
+    const paddingX = 40;
+    const paddingY = 24;
+    const maxTextWidth = 480;
 
-        el = document.createElement('div');
-        el.id = 'centerMessage';
-        el.classList.add('center-message');
-        centerWrap.appendChild(el);
-        fo.appendChild(centerWrap);
-        svg.appendChild(fo);
-    } else {
-        el = fo.querySelector('#centerMessage');
-    }
+    const lines = wrapSvgText(msg, fontSize, maxTextWidth);
+    const widestLine = Math.max(...lines.map(l => measureSvgTextWidth(l, fontSize)));
+    const boxW = Math.min(maxTextWidth, widestLine) + paddingX * 2;
+    const boxH = lines.length * lineHeight + paddingY * 2;
 
-    el.textContent = msg;
-    el.style.color = '#ffffff';
-    el.style.borderColor = color || '#f5e6a3';
-    el.classList.add('show');
-    clearTimeout(el._hideTimeout);
-    el._hideTimeout = setTimeout(() => el.classList.remove('show'), 2200);
+    const cx = BOARD_SIZE / 2;
+    const cy = BOARD_SIZE / 2;
+    const svgNS = 'http://www.w3.org/2000/svg';
+
+    const group = document.createElementNS(svgNS, 'g');
+    group.setAttribute('id', 'centerMessageGroup');
+    group.classList.add('center-message-group');
+    group.style.pointerEvents = 'none';
+
+    const rect = document.createElementNS(svgNS, 'rect');
+    rect.setAttribute('x', cx - boxW / 2);
+    rect.setAttribute('y', cy - boxH / 2);
+    rect.setAttribute('width', boxW);
+    rect.setAttribute('height', boxH);
+    rect.setAttribute('rx', 14);
+    rect.setAttribute('fill', '#000000');
+    rect.setAttribute('fill-opacity', '0.92');
+    rect.setAttribute('stroke', color || '#f5e6a3');
+    rect.setAttribute('stroke-width', 3);
+    group.appendChild(rect);
+
+    const text = document.createElementNS(svgNS, 'text');
+    text.setAttribute('x', cx);
+    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('fill', '#ffffff');
+    text.setAttribute('font-family', "'Bebas Neue', sans-serif");
+    text.setAttribute('font-size', fontSize);
+
+    const firstLineY = cy - boxH / 2 + paddingY + fontSize * 0.8;
+    lines.forEach((line, i) => {
+        const tspan = document.createElementNS(svgNS, 'tspan');
+        tspan.setAttribute('x', cx);
+        tspan.setAttribute('y', firstLineY + i * lineHeight);
+        tspan.textContent = line;
+        text.appendChild(tspan);
+    });
+    group.appendChild(text);
+
+    svg.appendChild(group);
+
+    requestAnimationFrame(() => {
+        group.classList.add('show');
+    });
+
+    clearTimeout(flashCenterMessage._hideTimeout);
+    flashCenterMessage._hideTimeout = setTimeout(() => {
+        group.classList.remove('show');
+    }, 2200);
 }
 
 // === TURN PROGRESSION ===
