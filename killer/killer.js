@@ -409,9 +409,12 @@ function updatePlayerOverlays() {
             const ay = cy + arrowR * Math.sin(midAngle);
 
             // Build an arrow (triangle) pointing toward the board center,
-            // rotated to align with this wedge's angle.
-            const arrowLength = 34;
-            const arrowWidth = 26;
+            // rotated to align with this wedge's angle. Wider and shorter
+            // than before so it reads clearly as an arrow without needing
+            // to extend far past the wedge (which risked clipping at the
+            // edge of the board's viewBox).
+            const arrowLength = 24;
+            const arrowWidth = 34;
             const pointAngle = midAngle + Math.PI; // pointing inward
             const tipX = ax + (arrowLength / 2) * Math.cos(pointAngle);
             const tipY = ay + (arrowLength / 2) * Math.sin(pointAngle);
@@ -425,8 +428,8 @@ function updatePlayerOverlays() {
 
             const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
             arrow.setAttribute('points', `${tipX},${tipY} ${base1X},${base1Y} ${base2X},${base2Y}`);
-            arrow.setAttribute('fill', '#fff');
-            arrow.setAttribute('stroke', player.color);
+            arrow.setAttribute('fill', player.color);
+            arrow.setAttribute('stroke', '#fff');
             arrow.setAttribute('stroke-width', 3);
             arrow.classList.add('active-arrow-pulse');
             arrow.style.pointerEvents = 'none';
@@ -750,7 +753,7 @@ const DARTBOARD_ORDER = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11
 const BOARD_SIZE = 700;
 const WEDGE_OUTER_R = 270;
 const BADGE_R = 292; // where player killer/active badges sit, just outside the wedge
-const ARROW_R = 330; // where the active-player arrow sits, beyond the killer badge
+const ARROW_R = 316; // where the active-player arrow sits, beyond the killer badge but within the viewBox
 
 function renderDartboard(target, { onSegmentTap }) {
     const size = BOARD_SIZE;
