@@ -15,9 +15,10 @@
  *   status immediately. You must fight back up to 3 lives to regain it.
  * - A player at 0 lives is still "in" the game but vulnerable — the next
  *   hit on their number (by a killer) eliminates them completely.
- * - Overkill: if a killer's hit removes MORE lives than the target has
- *   remaining (e.g. a treble on someone with 2 lives), they're eliminated
- *   immediately in that single throw — no follow-up hit required.
+ * - Overkill: if a killer's hit removes STRICTLY MORE lives than the
+ *   target has remaining (dropping them below 0, e.g. a treble on someone
+ *   with 2 lives), they're eliminated immediately in that single throw.
+ *   Landing exactly on 0 is NOT overkill and still needs a follow-up hit.
  * - Last player remaining wins.
  */
 
@@ -628,10 +629,12 @@ function handleOpponentHit(shooter, target, multiplier) {
         const wasKiller = target.isKiller;
         target.isKiller = false;
 
-        if (multiplier >= target.lives) {
-            // Overkill: the damage meets or exceeds their remaining lives,
-            // so they're eliminated immediately in this single throw —
-            // no need for a separate follow-up hit once at 0.
+        if (multiplier > target.lives) {
+            // Overkill: the damage exceeds (strictly more than) their
+            // remaining lives — dropping them below 0 — so they're
+            // eliminated immediately in this single throw. Landing exactly
+            // on 0 is NOT overkill; that still requires a separate
+            // follow-up hit per the standard rules.
             target.lives = 0;
             target.eliminated = true;
             safePlaySound(playEliminatedSound);
@@ -639,7 +642,9 @@ function handleOpponentHit(shooter, target, multiplier) {
         } else {
             target.lives -= multiplier;
             safePlaySound(playHitSound);
-            if (wasKiller) {
+            if (target.lives === 0) {
+                flashCenterMessage(`${target.name} is down to 0 lives — one more hit eliminates them!`, target.color);
+            } else if (wasKiller) {
                 flashCenterMessage(`${target.name} lost a life and their KILLER status!`, target.color);
             }
         }
