@@ -412,64 +412,53 @@ function playRejectSound() {
 }
 
 // === CRITICAL: PLAYER DOWN TO 0 LIVES (still alive, one more hit eliminates) ===
+// Panic/alarm feel — urgent and fast, not a "you're already dead" doom
+// sound. Think rapid warning beeps and a quickening heartbeat, not a
+// descending drone.
 function playCriticalSound() {
     const ctx = getAudioCtx();
     const now = ctx.currentTime;
 
-    // Low ominous drone
-    const drone = ctx.createOscillator();
-    drone.type = 'sawtooth';
-    drone.frequency.setValueAtTime(90, now);
-    drone.frequency.exponentialRampToValueAtTime(60, now + 0.9);
+    // Fast rising alarm beeps — like a siren winding up, quickening pace
+    const beepTimes = [0, 0.15, 0.28, 0.4, 0.5];
+    beepTimes.forEach((t, i) => {
+        const beep = ctx.createOscillator();
+        beep.type = 'square';
+        const freq = 700 + i * 60;
+        beep.frequency.setValueAtTime(freq, now + t);
 
-    const droneFilter = ctx.createBiquadFilter();
-    droneFilter.type = 'lowpass';
-    droneFilter.frequency.value = 400;
+        const beepGain = ctx.createGain();
+        beepGain.gain.setValueAtTime(0.001, now + t);
+        beepGain.gain.exponentialRampToValueAtTime(0.16, now + t + 0.015);
+        beepGain.gain.exponentialRampToValueAtTime(0.001, now + t + 0.09);
 
-    const droneGain = ctx.createGain();
-    droneGain.gain.setValueAtTime(0, now);
-    droneGain.gain.linearRampToValueAtTime(0.22, now + 0.08);
-    droneGain.gain.setValueAtTime(0.22, now + 0.6);
-    droneGain.gain.exponentialRampToValueAtTime(0.001, now + 1.0);
+        const beepFilter = ctx.createBiquadFilter();
+        beepFilter.type = 'bandpass';
+        beepFilter.frequency.value = freq;
+        beepFilter.Q.value = 4;
 
-    drone.connect(droneFilter);
-    droneFilter.connect(droneGain);
-    droneGain.connect(ctx.destination);
-    drone.start(now);
-    drone.stop(now + 1.05);
-
-    // Two dissonant warning "tolls" (like a warning bell), slightly detuned
-    // from each other for tension
-    [523.25, 554.37].forEach((freq, i) => {
-        const bell = ctx.createOscillator();
-        bell.type = 'triangle';
-        bell.frequency.value = freq;
-
-        const bellGain = ctx.createGain();
-        const t = now + i * 0.35;
-        bellGain.gain.setValueAtTime(0.001, t);
-        bellGain.gain.exponentialRampToValueAtTime(0.18, t + 0.02);
-        bellGain.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
-
-        bell.connect(bellGain);
-        bellGain.connect(ctx.destination);
-        bell.start(t);
-        bell.stop(t + 0.55);
+        beep.connect(beepFilter);
+        beepFilter.connect(beepGain);
+        beepGain.connect(ctx.destination);
+        beep.start(now + t);
+        beep.stop(now + t + 0.1);
     });
 
-    // Subtle rising tension riser underneath
-    const riser = ctx.createOscillator();
-    riser.type = 'sine';
-    riser.frequency.setValueAtTime(150, now);
-    riser.frequency.exponentialRampToValueAtTime(300, now + 0.9);
+    // Quick heartbeat-style double-thump underneath, slightly ahead of
+    // the beeps to give it a pulse-racing urgency
+    [0, 0.55].forEach(t => {
+        const thump = ctx.createOscillator();
+        thump.type = 'sine';
+        thump.frequency.setValueAtTime(120, now + t);
+        thump.frequency.exponentialRampToValueAtTime(50, now + t + 0.12);
 
-    const riserGain = ctx.createGain();
-    riserGain.gain.setValueAtTime(0, now);
-    riserGain.gain.linearRampToValueAtTime(0.08, now + 0.5);
-    riserGain.gain.exponentialRampToValueAtTime(0.001, now + 1.0);
+        const thumpGain = ctx.createGain();
+        thumpGain.gain.setValueAtTime(0.25, now + t);
+        thumpGain.gain.exponentialRampToValueAtTime(0.001, now + t + 0.15);
 
-    riser.connect(riserGain);
-    riserGain.connect(ctx.destination);
-    riser.start(now);
-    riser.stop(now + 1.05);
+        thump.connect(thumpGain);
+        thumpGain.connect(ctx.destination);
+        thump.start(now + t);
+        thump.stop(now + t + 0.18);
+    });
 }
