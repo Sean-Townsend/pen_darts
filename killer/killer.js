@@ -641,11 +641,14 @@ function handleOpponentHit(shooter, target, multiplier) {
             flashCenterMessage(`${target.name} has been ELIMINATED!`, target.color);
         } else {
             target.lives -= multiplier;
-            safePlaySound(playHitSound);
             if (target.lives === 0) {
+                safePlaySound(playCriticalSound);
                 flashCenterMessage(`${target.name} is down to 0 lives — one more hit eliminates them!`, target.color);
-            } else if (wasKiller) {
-                flashCenterMessage(`${target.name} lost a life and their KILLER status!`, target.color);
+            } else {
+                safePlaySound(playHitSound);
+                if (wasKiller) {
+                    flashCenterMessage(`${target.name} lost a life and their KILLER status!`, target.color);
+                }
             }
         }
     }

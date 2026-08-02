@@ -410,3 +410,66 @@ function playRejectSound() {
     osc.start(now);
     osc.stop(now + 0.2);
 }
+
+// === CRITICAL: PLAYER DOWN TO 0 LIVES (still alive, one more hit eliminates) ===
+function playCriticalSound() {
+    const ctx = getAudioCtx();
+    const now = ctx.currentTime;
+
+    // Low ominous drone
+    const drone = ctx.createOscillator();
+    drone.type = 'sawtooth';
+    drone.frequency.setValueAtTime(90, now);
+    drone.frequency.exponentialRampToValueAtTime(60, now + 0.9);
+
+    const droneFilter = ctx.createBiquadFilter();
+    droneFilter.type = 'lowpass';
+    droneFilter.frequency.value = 400;
+
+    const droneGain = ctx.createGain();
+    droneGain.gain.setValueAtTime(0, now);
+    droneGain.gain.linearRampToValueAtTime(0.22, now + 0.08);
+    droneGain.gain.setValueAtTime(0.22, now + 0.6);
+    droneGain.gain.exponentialRampToValueAtTime(0.001, now + 1.0);
+
+    drone.connect(droneFilter);
+    droneFilter.connect(droneGain);
+    droneGain.connect(ctx.destination);
+    drone.start(now);
+    drone.stop(now + 1.05);
+
+    // Two dissonant warning "tolls" (like a warning bell), slightly detuned
+    // from each other for tension
+    [523.25, 554.37].forEach((freq, i) => {
+        const bell = ctx.createOscillator();
+        bell.type = 'triangle';
+        bell.frequency.value = freq;
+
+        const bellGain = ctx.createGain();
+        const t = now + i * 0.35;
+        bellGain.gain.setValueAtTime(0.001, t);
+        bellGain.gain.exponentialRampToValueAtTime(0.18, t + 0.02);
+        bellGain.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+
+        bell.connect(bellGain);
+        bellGain.connect(ctx.destination);
+        bell.start(t);
+        bell.stop(t + 0.55);
+    });
+
+    // Subtle rising tension riser underneath
+    const riser = ctx.createOscillator();
+    riser.type = 'sine';
+    riser.frequency.setValueAtTime(150, now);
+    riser.frequency.exponentialRampToValueAtTime(300, now + 0.9);
+
+    const riserGain = ctx.createGain();
+    riserGain.gain.setValueAtTime(0, now);
+    riserGain.gain.linearRampToValueAtTime(0.08, now + 0.5);
+    riserGain.gain.exponentialRampToValueAtTime(0.001, now + 1.0);
+
+    riser.connect(riserGain);
+    riserGain.connect(ctx.destination);
+    riser.start(now);
+    riser.stop(now + 1.05);
+}
