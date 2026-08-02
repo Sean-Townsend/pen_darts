@@ -528,11 +528,13 @@ body {
     }
 }
 
-/* === CENTER FLASH MESSAGE === */
+/* === CENTER FLASH MESSAGE ===
+   Position (left/top) is set inline via JS to the dartboard's real
+   on-screen center, computed with getBoundingClientRect() for accuracy
+   across all browsers/devices. CSS only handles the visual styling and
+   the centering transform around that point. */
 .center-message {
-    position: absolute;
-    top: 50%;
-    left: 50%;
+    position: fixed;
     transform: translate(-50%, -50%) scale(0.85);
     background: rgba(0,0,0,0.92);
     border: 3px solid #f5e6a3;

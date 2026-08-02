@@ -658,12 +658,22 @@ function flashCenterMessage(msg, color) {
         el = document.createElement('div');
         el.id = 'centerMessage';
         el.classList.add('center-message');
-        // Append inside the dartboard wrap (not the whole screen) so it
-        // centers over the actual board, which is offset from screen
-        // center to make room for the sidebar.
-        const wrap = document.getElementById('dartboardWrap');
-        (wrap || document.querySelector('.screen-game')).appendChild(el);
+        document.body.appendChild(el);
     }
+
+    // Position using the dartboard SVG's actual on-screen bounding box
+    // rather than relying on CSS ancestor positioning contexts (percentage
+    // centering can behave inconsistently across browsers/devices,
+    // especially with viewport units and mobile Safari's dynamic viewport).
+    // This computes the real geometry directly, so it's always accurate.
+    const svg = document.querySelector('#dartboardWrap .dartboard-svg');
+    if (svg) {
+        const rect = svg.getBoundingClientRect();
+        el.style.position = 'fixed';
+        el.style.left = (rect.left + rect.width / 2) + 'px';
+        el.style.top = (rect.top + rect.height / 2) + 'px';
+    }
+
     el.textContent = msg;
     el.style.borderColor = color || '#f5e6a3';
     el.classList.add('show');
