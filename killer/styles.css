@@ -305,12 +305,13 @@ body {
     position: relative;
     min-height: 0;
     padding-bottom: 4vh;
+    /* Reserve space on the right matching the sidebar's width (300px)
+       plus its margin (2vw), so the board centers itself in the space
+       actually left over instead of the full screen width — otherwise
+       it can visually overlap the sidebar on narrower/tablet screens. */
+    padding-right: calc(300px + 4vw);
 }
 
-/* Board gets almost the entire screen now that lives live on the board.
-   It's centered on the FULL width of the screen (not just the space left
-   after the sidebar) so it sits directly under the turn indicator, which
-   is itself centered on the screen. */
 .dartboard-wrap {
     display: flex;
     align-items: center;
@@ -320,8 +321,8 @@ body {
 }
 
 .dartboard-svg {
-    width: min(96vh, 74vw);
-    height: min(96vh, 74vw);
+    width: min(90vh, 68vw);
+    height: min(90vh, 68vw);
 }
 
 /* Skull shown over an eliminated player's wedge */
