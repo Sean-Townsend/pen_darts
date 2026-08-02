@@ -83,18 +83,6 @@ body {
     justify-content: center;
 }
 
-/* Stays invisible until layout has fully settled (see killer.js), to
-   avoid a brief flash where the panel appears mispositioned before
-   jumping to its correct centered spot on some mobile browsers. */
-.screen-fade-in {
-    opacity: 0;
-    transition: opacity 0.15s ease;
-}
-
-.screen-fade-in.ready {
-    opacity: 1;
-}
-
 .overlay-panel {
     background: linear-gradient(180deg, #2d1a2e, #1a0a1a);
     border: 2px solid #4a2040;

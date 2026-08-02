@@ -75,7 +75,7 @@ function revealApp() {
 function showPlayerCountScreen() {
     gameState.phase = 'setup-players';
     container().innerHTML = `
-        <div class="screen-center screen-fade-in" id="playerCountScreen">
+        <div class="screen-center" id="playerCountScreen">
             <div class="overlay-panel">
                 <h1 class="overlay-title">PenBar</h1>
                 <h2 class="overlay-subtitle skull">KILLER DARTS</h2>
