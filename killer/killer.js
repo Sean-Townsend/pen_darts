@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function showPlayerCountScreen() {
     gameState.phase = 'setup-players';
     container().innerHTML = `
-        <div class="screen-center">
+        <div class="screen-center screen-fade-in" id="playerCountScreen">
             <div class="overlay-panel">
                 <h1 class="overlay-title">PenBar</h1>
                 <h2 class="overlay-subtitle skull">KILLER DARTS</h2>
@@ -64,6 +64,17 @@ function showPlayerCountScreen() {
             </div>
         </div>
     `;
+
+    // Keep the screen invisible until the browser has fully settled layout
+    // (fonts applied, flex centering resolved). Avoids a brief flash where
+    // the panel appears in the wrong spot before jumping to center, which
+    // can happen on some mobile browsers even after fonts.ready resolves.
+    const screenEl = document.getElementById('playerCountScreen');
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            if (screenEl) screenEl.classList.add('ready');
+        });
+    });
 
     const btnContainer = document.getElementById('playerCountButtons');
     for (let i = 2; i <= MAX_PLAYERS; i++) {

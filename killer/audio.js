@@ -420,7 +420,7 @@ function playCriticalSound() {
     const now = ctx.currentTime;
 
     // Fast rising alarm beeps — like a siren winding up, quickening pace
-    const beepTimes = [0, 0.15, 0.28, 0.4, 0.5];
+    const beepTimes = [0, 0.15, 0.28, 0.4, 0.5, 0.62, 0.76, 0.92, 1.1];
     beepTimes.forEach((t, i) => {
         const beep = ctx.createOscillator();
         beep.type = 'square';
@@ -444,9 +444,10 @@ function playCriticalSound() {
         beep.stop(now + t + 0.1);
     });
 
-    // Quick heartbeat-style double-thump underneath, slightly ahead of
-    // the beeps to give it a pulse-racing urgency
-    [0, 0.55].forEach(t => {
+    // Heartbeat-style thumps underneath, racing/quickening to give it a
+    // pulse-racing urgency — extended to 4 beats so it reads more clearly
+    // as a heartbeat rather than a single double-thump
+    [0, 0.42, 0.8, 1.14].forEach(t => {
         const thump = ctx.createOscillator();
         thump.type = 'sine';
         thump.frequency.setValueAtTime(120, now + t);
