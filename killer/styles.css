@@ -207,8 +207,8 @@ body {
 }
 
 .screen-setup .dartboard-svg {
-    width: min(70vh, 70vw);
-    height: min(70vh, 70vw);
+    width: min(90vh, 68vw);
+    height: min(90vh, 68vw);
 }
 
 .dartboard-segment {
