@@ -411,10 +411,14 @@ function updatePlayerOverlays() {
             overlayGroup.appendChild(skull);
         }
 
-        // Eliminated: skull over the wedge label position
+        // Eliminated: skull placed at the wedge's mid-radius (between the
+        // inner and outer edge), well clear of the number label which
+        // sits further out at the wedge's outer edge — avoids the two
+        // overlapping regardless of re-render/z-order changes.
         if (player.eliminated) {
-            const sx = cx + 245 * Math.cos(midAngle);
-            const sy = cy + 245 * Math.sin(midAngle);
+            const skullR = (24 + WEDGE_OUTER_R) / 2;
+            const sx = cx + skullR * Math.cos(midAngle);
+            const sy = cy + skullR * Math.sin(midAngle);
             const skull = document.createElementNS('http://www.w3.org/2000/svg', 'text');
             skull.setAttribute('x', sx);
             skull.setAttribute('y', sy);
